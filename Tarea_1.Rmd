@@ -1,0 +1,476 @@
+---
+title: "Tarea #1"
+author: "Juan David Garro"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+# Se define una presentación limpia para todos los bloques de código.
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+# Introducción
+
+En esta tarea se analizarán cuatro series de tiempo incluidas en R.
+
+# Desarrollo
+
+## Carga de las series
+
+Las series utilizadas están disponibles en R, por lo que no es necesario descargarlas desde internet.
+
+```{r series}
+# Se reúnen las cuatro series en una lista para analizarlas de la misma forma.
+# Cada serie se convierte en un vector numérico y conserva únicamente sus valores.
+series_A <- list(
+  `Nivel del lago Hurón` = as.numeric(LakeHuron),        # Serie anual con 98 datos.
+  `Temperatura en Nottingham` = as.numeric(nottem),     # Serie mensual con 240 datos.
+  `Población de Australia` = as.numeric(austres),       # Serie trimestral con 89 datos.
+  `Muertes accidentales` = as.numeric(USAccDeaths)      # Serie mensual con 72 datos.
+)
+```
+
+## Gráficas de las series y sus ACF
+
+```{r graficas, fig.width=10, fig.height=4}
+# Se divide el espacio gráfico en dos partes para comparar cada serie con su ACF.
+par(mfrow = c(1, 2))
+
+# Se recorre la lista y se trabaja con una serie a la vez.
+for (nombre in names(series_A)) {
+  # A la izquierda se dibuja la evolución de los valores en el tiempo.
+  plot(series_A[[nombre]], type = "l", main = nombre,
+       xlab = "Tiempo", ylab = "Valor")
+
+  # Se usa aproximadamente la cuarta parte de los datos como número de rezagos.
+  n <- length(series_A[[nombre]])
+  m <- floor(n / 4)
+
+  # Se calcula la ACF hasta el rezago m sin dibujarla todavía.
+  resultado_acf <- acf(series_A[[nombre]], lag.max = m, plot = FALSE)
+  rezagos <- as.numeric(resultado_acf$lag)[-1]
+  correlaciones <- as.numeric(resultado_acf$acf)[-1]
+
+  # La banda azul supone que la serie es ruido blanco.
+  banda_blanca <- qnorm(0.975) / sqrt(n)
+
+  # La banda roja de Bartlett cambia según las correlaciones anteriores.
+  sumas_previas <- c(0, cumsum(correlaciones[-length(correlaciones)]^2))
+  banda_bartlett <- qnorm(0.975) * sqrt((1 + 2 * sumas_previas) / n)
+
+  # A la derecha se dibuja la ACF y se añaden ambas bandas de confianza.
+  plot(rezagos, correlaciones, type = "h", ylim = c(-1, 1),
+       main = paste("ACF de", nombre), xlab = "Rezago", ylab = "ACF")
+  abline(h = 0)
+  abline(h = c(-banda_blanca, banda_blanca), col = "blue", lty = 2)
+  lines(rezagos, banda_bartlett, col = "red", lty = 3)
+  lines(rezagos, -banda_bartlett, col = "red", lty = 3)
+  legend("topright", c("Ruido blanco", "Bartlett"),
+         col = c("blue", "red"), lty = c(2, 3), cex = 0.8)
+}
+```
+
+## Valores de autocorrelación seleccionados
+
+El período estacional es 1 para la serie anual, 12 para las series mensuales y 4 para la serie trimestral.
+
+```{r tabla}
+# Se guarda el período estacional que corresponde a cada serie.
+periodos <- c(
+  `Nivel del lago Hurón` = 1,
+  `Temperatura en Nottingham` = 12,
+  `Población de Australia` = 4,
+  `Muertes accidentales` = 12
+)
+
+# Se crea una tabla vacía para guardar los resultados de cada serie.
+tabla_acf <- data.frame()
+
+# Se calcula la ACF y se extraen los valores de los rezagos 1, s y 2s.
+for (nombre in names(series_A)) {
+  serie <- series_A[[nombre]]
+  s <- periodos[nombre]
+  r <- as.numeric(acf(serie, lag.max = 2 * s, plot = FALSE)$acf)
+
+  tabla_acf <- rbind(
+    tabla_acf,
+    data.frame(
+      Serie = nombre,
+      s = s,
+      r1 = r[2],
+      rs = r[s + 1],
+      r2s = r[2 * s + 1]
+    )
+  )
+}
+
+# Se presenta la tabla con tres cifras decimales.
+knitr::kable(tabla_acf, digits = 3, row.names = FALSE)
+```
+
+## Prueba de Ljung--Box
+
+La prueba de Ljung--Box permite evaluar conjuntamente las autocorrelaciones desde el rezago 1 hasta el rezago 24.
+
+### Hipótesis de la prueba
+
+**Hipótesis nula:**
+
+$$
+H_0: \rho_1 = \rho_2 = \cdots = \rho_{24} = 0
+$$
+
+La serie no presenta autocorrelación en los primeros 24 rezagos y se comporta como ruido blanco.
+
+**Hipótesis alternativa:**
+
+$$
+H_1: \rho_k \neq 0 \quad \text{para al menos un } k \in \{1,\ldots,24\}
+$$
+
+La serie presenta autocorrelación en al menos uno de los primeros 24 rezagos.
+
+Se utiliza un nivel de significancia de $\alpha=0.05$. Si el valor p es menor que 0.05, se rechaza $H_0$; en caso contrario, no se rechaza $H_0$.
+
+```{r ljung-box}
+# Se crea una tabla vacía para guardar el resultado de cada prueba.
+tabla_ljung <- data.frame()
+
+# Se aplica la prueba de Ljung-Box con 24 rezagos a cada serie.
+for (nombre in names(series_A)) {
+  prueba <- Box.test(series_A[[nombre]], lag = 24, type = "Ljung-Box")
+
+  # Se guardan el estadístico Q y el valor p obtenidos para la serie.
+  tabla_ljung <- rbind(
+    tabla_ljung,
+    data.frame(
+      Serie = nombre,
+      Q = as.numeric(prueba$statistic),
+      p = format.pval(prueba$p.value, digits = 3, eps = 0.001)
+    )
+  )
+}
+
+# Se presenta la tabla con el estadístico Q redondeado a tres cifras.
+knitr::kable(tabla_ljung, digits = 3, row.names = FALSE,
+             col.names = c("Serie", "Q", "Valor p"))
+```
+
+La hipótesis nula afirma que las autocorrelaciones de los primeros 24 rezagos son iguales a cero. En las cuatro series el valor p es menor que 0.001. Por lo tanto, con un nivel de significancia del 5 %, se rechaza la hipótesis nula en todos los casos. Esto indica que las cuatro series presentan dependencia temporal y no se comportan como ruido blanco.
+
+## Clasificación de las series
+
+| Serie                       | Patrón | Evidencia | Familia |
+|:----------------------------|:------:|:---------:|:-------:|
+| Nivel del lago Hurón        |        |           |         |
+| Temperatura en Nottingham   |        |           |         |
+| Población de Australia      |        |           |         |
+| Muertes accidentales        |        |           |         |
+
+## Series para las rutas 1 y 2
+
+En esta sección se preparan las series que se utilizarán en las dos rutas de análisis.
+
+```{r rutas}
+# La ruta 1 utiliza la temperatura mensual de Nottingham.
+y_ruta1 <- as.numeric(nottem)
+s1 <- 12
+
+# La ruta 2 utiliza el consumo trimestral de gas del Reino Unido.
+y_ruta2 <- as.numeric(UKgas)
+s2 <- 4
+
+# Se comprueba la cantidad de observaciones que tiene cada serie.
+c(T1 = length(y_ruta1), T2 = length(y_ruta2))
+```
+
+La primera serie tiene 240 observaciones y un período estacional de 12 meses. La segunda tiene 108 observaciones y un período estacional de 4 trimestres.
+
+### Gráficas y correlogramas de las dos series
+
+```{r graficas-rutas, fig.width=10, fig.height=8}
+# Se reúnen las dos series para graficarlas con el mismo procedimiento.
+rutas <- list(
+  `Temperatura en Nottingham` = y_ruta1,
+  `Consumo de gas del Reino Unido` = y_ruta2
+)
+
+# Cada fila mostrará una serie a la izquierda y su correlograma a la derecha.
+par(mfrow = c(2, 2))
+
+# Se recorre la lista y se trabaja con una serie a la vez.
+for (nombre in names(rutas)) {
+  serie <- rutas[[nombre]]
+
+  # Primero se dibuja la evolución de la serie en el tiempo.
+  plot(serie, type = "l", main = nombre,
+       xlab = "Tiempo", ylab = "Valor")
+
+  # Se calcula la ACF usando aproximadamente T/4 rezagos.
+  n <- length(serie)
+  m <- floor(n / 4)
+  resultado_acf <- acf(serie, lag.max = m, plot = FALSE)
+  rezagos <- as.numeric(resultado_acf$lag)[-1]
+  correlaciones <- as.numeric(resultado_acf$acf)[-1]
+
+  # Se calculan la banda de ruido blanco y la banda de Bartlett.
+  banda_blanca <- qnorm(0.975) / sqrt(n)
+  sumas_previas <- c(0, cumsum(correlaciones[-length(correlaciones)]^2))
+  banda_bartlett <- qnorm(0.975) * sqrt((1 + 2 * sumas_previas) / n)
+
+  # Luego se dibuja el correlograma con las dos bandas de confianza.
+  plot(rezagos, correlaciones, type = "h", ylim = c(-1, 1),
+       main = paste("ACF de", nombre), xlab = "Rezago", ylab = "ACF")
+  abline(h = 0)
+  abline(h = c(-banda_blanca, banda_blanca), col = "blue", lty = 2)
+  lines(rezagos, banda_bartlett, col = "red", lty = 3)
+  lines(rezagos, -banda_bartlett, col = "red", lty = 3)
+  legend("topright", c("Ruido blanco", "Bartlett"),
+         col = c("blue", "red"), lty = c(2, 3), cex = 0.8)
+}
+```
+
+### Componentes observados en las series
+
+En cada celda se puede indicar **Se observa** o **No se observa**, de acuerdo con el comportamiento mostrado en las gráficas.
+
+| Nombre                         | Nivel | Tendencia | Estacionalidad | Ciclo | Episodios atípicos |
+|:-------------------------------|:-----:|:---------:|:--------------:|:-----:|:------------------:|
+| Temperatura en Nottingham      |       |           |                |       |                    |
+| Consumo de gas del Reino Unido |       |           |                |       |                    |
+
+## Ruta 2: nivel y amplitud por año
+
+Para cada año, el **nivel medio** es el promedio de sus cuatro observaciones trimestrales. La **amplitud estacional** es la diferencia entre el trimestre con mayor consumo y el trimestre con menor consumo del mismo año.
+
+```{r nivel-amplitud-ruta2}
+# La función matrix organiza el vector y_ruta2 en una tabla.
+# ncol = s2 crea cuatro columnas, porque cada año tiene cuatro trimestres.
+# byrow = TRUE coloca cada grupo de cuatro datos consecutivos en una misma fila.
+datos_anuales <- matrix(y_ruta2, ncol = s2, byrow = TRUE)
+
+# Cada fila de datos_anuales representa un año entre 1960 y 1986.
+anios <- 1960:1986
+
+# rowMeans calcula el promedio de cada fila.
+# El resultado es un vector con un nivel medio para cada año.
+nivel_medio <- rowMeans(datos_anuales)
+
+# apply recorre la matriz por filas porque MARGIN = 1.
+# Para cada año, max obtiene el valor mayor y min obtiene el menor.
+# La resta entre ambos valores produce la amplitud estacional anual.
+amplitud_estacional <- apply(
+  datos_anuales,
+  MARGIN = 1,
+  FUN = function(valores) max(valores) - min(valores)
+)
+
+# data.frame reúne los tres vectores en columnas de una sola tabla.
+# Cada fila contiene el año, su nivel medio y su amplitud estacional.
+resumen_ruta2 <- data.frame(
+  Año = anios,
+  Nivel_medio = nivel_medio,
+  Amplitud_estacional = amplitud_estacional
+)
+
+# kable presenta el objeto resumen_ruta2 como una tabla en el informe.
+knitr::kable(resumen_ruta2, digits = 3, row.names = FALSE)
+```
+
+### Relación entre la amplitud y el nivel
+
+```{r grafica-nivel-amplitud, fig.width=7, fig.height=5}
+# El símbolo $ selecciona una columna específica de resumen_ruta2.
+# plot coloca el nivel medio en el eje horizontal y la amplitud en el vertical.
+# Cada punto representa uno de los años de la serie.
+plot(
+  resumen_ruta2$Nivel_medio,
+  resumen_ruta2$Amplitud_estacional,
+  main = "Amplitud estacional contra nivel medio",
+  xlab = "Nivel medio anual",
+  ylab = "Amplitud estacional anual",
+  pch = 19
+)
+
+# cor mide la relación lineal entre las dos columnas.
+# El resultado puede variar entre -1 y 1; un valor cercano a 1 indica
+# que la amplitud aumenta a medida que aumenta el nivel.
+correlacion <- cor(
+  resumen_ruta2$Nivel_medio,
+  resumen_ruta2$Amplitud_estacional
+)
+
+# Se muestra la correlación redondeada a tres cifras decimales.
+round(correlacion, 3)
+```
+
+La correlación entre el nivel medio y la amplitud estacional es **`r round(correlacion, 3)`**. En el gráfico, la amplitud aumenta claramente cuando aumenta el nivel de la serie. Además, la correlación es positiva y muy cercana a 1. Por estas razones, se concluye que la escala de la ruta 2 es **multiplicativa**. En una escala aditiva, la amplitud permanecería aproximadamente constante aunque cambiara el nivel.
+
+### Correlogramas de las dos rutas
+
+```{r acf-rutas, fig.width=10, fig.height=5}
+# Este vector guarda el período estacional de cada serie.
+# El primer valor corresponde a nottem y el segundo a UKgas.
+periodos_rutas <- c(s1, s2)
+
+# par divide la figura en dos columnas para mostrar un correlograma por ruta.
+par(mfrow = c(1, 2))
+
+# seq_along produce las posiciones 1 y 2 para recorrer ambas series.
+for (i in seq_along(rutas)) {
+  # [[i]] extrae la serie situada en la posición i de la lista rutas.
+  serie <- rutas[[i]]
+
+  # length cuenta los datos y floor toma la parte entera de T/4.
+  T <- length(serie)
+  m <- floor(T / 4)
+
+  # acf calcula las autocorrelaciones hasta m, pero no las grafica todavía.
+  resultado <- acf(serie, lag.max = m, plot = FALSE)
+
+  # $lag y $acf extraen los rezagos y las autocorrelaciones del resultado.
+  # [-1] elimina el rezago 0, cuya autocorrelación siempre es igual a 1.
+  rezagos <- as.numeric(resultado$lag)[-1]
+  correlaciones <- as.numeric(resultado$acf)[-1]
+
+  # La primera expresión calcula la banda constante de ruido blanco.
+  banda_blanca <- qnorm(0.975) / sqrt(T)
+
+  # cumsum acumula los cuadrados de las correlaciones anteriores.
+  # Estas sumas permiten que la banda de Bartlett cambie con el rezago.
+  sumas_previas <- c(0, cumsum(correlaciones[-length(correlaciones)]^2))
+  banda_bartlett <- qnorm(0.975) * sqrt((1 + 2 * sumas_previas) / T)
+
+  # plot dibuja las autocorrelaciones como líneas verticales.
+  # names(rutas)[i] toma el nombre de la serie para formar el título.
+  plot(rezagos, correlaciones, type = "h", ylim = c(-1, 1),
+       main = paste("ACF de", names(rutas)[i]),
+       xlab = "Rezago", ylab = "ACF")
+  abline(h = 0)
+
+  # Las líneas azules corresponden a la banda de ruido blanco.
+  abline(h = c(-banda_blanca, banda_blanca), col = "blue", lty = 2)
+
+  # Las líneas rojas corresponden a los dos límites de Bartlett.
+  lines(rezagos, banda_bartlett, col = "red", lty = 3)
+  lines(rezagos, -banda_bartlett, col = "red", lty = 3)
+
+  # legend explica el color y el tipo de línea de cada banda.
+  legend("topright", c("Ruido blanco", "Bartlett"),
+         col = c("blue", "red"), lty = c(2, 3), cex = 0.8)
+}
+```
+
+La ruta 1 utiliza $m=\lfloor240/4\rfloor=60$ rezagos y la ruta 2 utiliza $m=\lfloor108/4\rfloor=27$.
+
+### Autocorrelaciones en los rezagos estacionales
+
+```{r autocorrelaciones-rutas}
+# Se crea una tabla vacía que recibirá una fila por cada ruta.
+tabla_estacional <- data.frame()
+
+# El ciclo recorre las dos series y sus períodos estacionales.
+for (i in seq_along(rutas)) {
+  serie <- rutas[[i]]
+  s <- periodos_rutas[i]
+
+  # Los cuatro rezagos solicitados son s, 2s, 3s y 4s.
+  rezagos_estacionales <- c(s, 2 * s, 3 * s, 4 * s)
+
+  # acf calcula hasta 4s, el mayor rezago que se necesita reportar.
+  resultado <- acf(serie, lag.max = 4 * s, plot = FALSE)
+
+  # Se suma 1 porque la primera posición del objeto corresponde al rezago 0.
+  valores <- as.numeric(resultado$acf)[rezagos_estacionales + 1]
+
+  # rbind añade a la tabla una fila con el nombre y los cuatro resultados.
+  tabla_estacional <- rbind(
+    tabla_estacional,
+    data.frame(
+      Serie = names(rutas)[i],
+      s = s,
+      rs = valores[1],
+      r2s = valores[2],
+      r3s = valores[3],
+      r4s = valores[4]
+    )
+  )
+}
+
+# kable muestra la tabla y redondea las autocorrelaciones a tres decimales.
+knitr::kable(tabla_estacional, digits = 3, row.names = FALSE,
+             col.names = c("Serie", "s", "r_s", "r_2s", "r_3s", "r_4s"))
+```
+
+### Interpretación de los picos estacionales
+
+| Serie | ¿Los picos en múltiplos de $s$ decaen o se mantienen? | Evidencia del correlograma | Tipo de serie | Diferencia entre tipo II y tipo IV |
+|:------|:------------------------------------------------------|:---------------------------|:-------------:|:-----------------------------------|
+| Temperatura en Nottingham | | | | |
+| Consumo de gas del Reino Unido | | | | |
+
+### Prueba de Ljung--Box para las dos rutas
+
+En cada serie se utiliza $m=4s$. Por ello, la ruta 1 usa 48 rezagos y la ruta 2 usa 16.
+
+**Hipótesis nula:**
+
+$$
+H_0: \rho_1 = \rho_2 = \cdots = \rho_{4s} = 0
+$$
+
+La serie no presenta autocorrelación en los primeros $4s$ rezagos.
+
+**Hipótesis alternativa:**
+
+$$
+H_1: \rho_k \neq 0 \quad \text{para al menos un } k \in \{1,\ldots,4s\}
+$$
+
+La serie presenta autocorrelación en al menos uno de los primeros $4s$ rezagos.
+
+```{r ljung-box-rutas}
+# Se crea una tabla vacía para almacenar una prueba por cada ruta.
+tabla_ljung_rutas <- data.frame()
+
+# El ciclo aplica el mismo procedimiento a las dos series.
+for (i in seq_along(rutas)) {
+  serie <- rutas[[i]]
+  s <- periodos_rutas[i]
+
+  # La cantidad de rezagos de la prueba se obtiene multiplicando 4 por s.
+  m_ljung <- 4 * s
+
+  # Box.test aplica la prueba y devuelve, entre otros datos, Q y el valor p.
+  prueba <- Box.test(serie, lag = m_ljung, type = "Ljung-Box")
+
+  # rbind agrega los resultados de la serie actual como una nueva fila.
+  tabla_ljung_rutas <- rbind(
+    tabla_ljung_rutas,
+    data.frame(
+      Serie = names(rutas)[i],
+      m = m_ljung,
+      Q = as.numeric(prueba$statistic),
+      p = format.pval(prueba$p.value, digits = 3, eps = 0.001)
+    )
+  )
+}
+
+# kable presenta los resultados y muestra Q con tres cifras decimales.
+knitr::kable(tabla_ljung_rutas, digits = 3, row.names = FALSE,
+             col.names = c("Serie", "m", "Q", "Valor p"))
+```
+
+En ambas rutas el valor p es menor que 0.001 y, por tanto, menor que $\alpha=0.05$. Se rechaza $H_0$ para las dos series: ambas presentan autocorrelación y ninguna se comporta como ruido blanco.
+
+# Conclusiones
+
+Resuma aquí los principales hallazgos de la tarea.
