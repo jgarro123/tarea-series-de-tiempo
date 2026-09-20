@@ -589,7 +589,7 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 2**
+**Ruta 1, paso 2**
 
 
 #### Ljung–Box con 48 rezagos
@@ -637,12 +637,12 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 2**
+**Ruta 2, paso 2**
 
--   Hipótesis, significancia y regla de decisión:
--   Interpretación de Ljung–Box:
--   ¿Los picos en múltiplos de s decaen o se mantienen?:
--   ¿Qué distingue a los tipos II y IV?:
+-   **Hipótesis y regla:** $H_0$ establece que no hay autocorrelación hasta el rezago 16. Con $\alpha=0{,}05$, se rechaza si $Q>\chi^2_{16;0{,}95}=26{,}30$ o si $p<0{,}05$.
+-   **Ljung–Box:** Como $Q=503{,}3$ y $p<10^{-12}$, se rechaza $H_0$; la serie presenta una fuerte dependencia temporal.
+-   **Picos estacionales:** Decaen gradualmente, pero permanecen altos: $r_4=0{,}902$, $r_8=0{,}806$, $r_{12}=0{,}720$ y $r_{16}=0{,}633$.
+-   **Tipos II y IV:** El tipo II oscila alrededor de cero; el tipo IV mantiene autocorrelaciones positivas con decaimiento lento por la tendencia. `UKgas` corresponde al **tipo IV**.
 :::
 
 ## Paso 3. Partir la muestra
@@ -752,7 +752,7 @@ mostrar_tabla(comparacion)
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 5**
+**Ruta 1, paso 5**
 
 -   **Método seleccionado según RMSE:** Tendencia y variables ficticias, con un RMSE de **1,9686**.
 -   **¿Supera al ingenuo estacional y por cuánto?:** Sí. Reduce el RMSE en **0,9721**, equivalente a **33,06 %**.
@@ -786,7 +786,7 @@ mostrar_tabla(comparacion)
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 5**
+**Ruta 2, paso 5**
 
 -   **Método seleccionado según RMSE:** Holt-Winters aditivo, con un RMSE de **43,8790**.
 -   **¿Supera al ingenuo estacional y por cuánto?:** Sí. Reduce el RMSE en **8,0851**, equivalente a **15,56 %**.
@@ -842,7 +842,7 @@ stats::qqline(errores_ganador, col = "red")
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 6**
+**Ruta 1, paso 6**
 
 -   **Ljung–Box:** $H_0$ establece que no hay autocorrelación hasta el rezago 10. Como $Q=8{,}7342$ y el valor $p=0{,}5575>0{,}05$, no se rechaza $H_0$.
 -   **Correlograma:** No muestra autocorrelaciones significativas; los errores se comportan aproximadamente como ruido blanco.
@@ -865,7 +865,7 @@ graficar_acf(residuos_medias, 24, "Residuos: medias estacionales")
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, comparación adicional**
+**Ruta 1, comparación adicional**
 
 -   **Comparación:** En los errores de origen móvil no se rechaza la ausencia de autocorrelación ($p=0{,}5575$); en los residuos de medias estacionales sí se rechaza ($p=6{,}929\times10^{-6}$).
 -   **Explicación:** El ganador incluye tendencia y estacionalidad y se evalúa fuera de muestra, mientras que las medias estacionales solo eliminan la estacionalidad y dejan dependencia temporal. Además, ambos diagnósticos usan distintos tamaños de muestra, rezagos y grados de libertad.
@@ -917,7 +917,7 @@ stats::qqline(errores_ganador, col = "red")
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 6**
+**Ruta 2, paso 6**
 
 -   **Ljung–Box:** $H_0$ establece que no hay autocorrelación hasta el rezago 7. Como $Q=6{,}3239$ y el valor $p=0{,}5025>0{,}05$, no se rechaza $H_0$.
 -   **Correlograma:** No muestra autocorrelaciones significativas; los errores se comportan aproximadamente como ruido blanco.
@@ -971,7 +971,7 @@ legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 7**
+**Ruta 1, paso 7**
 
 -   **¿Por qué la banda es heurística?:** Se construye como pronóstico $\pm 1{,}96$ desviaciones de los errores de horizonte uno y conserva el mismo ancho. No incorpora la incertidumbre de los parámetros ni el aumento del error con el horizonte, por lo que no es un intervalo formal.
 -   **Interpretación, línea 1:** Para 1940 se pronostican temperaturas cercanas a **40** grados al inicio del año, con un mínimo de **39,789** en febrero.
@@ -1021,7 +1021,7 @@ legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
 ```
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 7**
+**Ruta 2, paso 7**
 
 -   **¿Por qué la banda es heurística?:** Se construye como pronóstico $\pm 1{,}96$ desviaciones de los errores de horizonte uno y conserva el mismo ancho. No incorpora la incertidumbre de los parámetros ni el aumento del error con el horizonte, por lo que no es un intervalo formal.
 -   **Interpretación, línea 1:** Para 1987 se pronostica un máximo de **1205,388** en el primer trimestre.
@@ -1335,7 +1335,7 @@ Demostrar que los coeficientes de la regresión estacional sin intercepto
 son los promedios de cada estación.
 
 ::: respuesta
-**ESCRIBIR AQUÍ — D.4**
+**D.4**
 
 -   Demostración de beta_j estimado = media de la estación j:
 -   Escritura explícita de X transpuesta X y X transpuesta Y para cuatro
@@ -1348,7 +1348,7 @@ son los promedios de cada estación.
 # 6. Cierre: autoevaluación
 
 ::: respuesta
-**ESCRIBIR AQUÍ — Autoevaluación**
+**Autoevaluación**
 
 -   
 
