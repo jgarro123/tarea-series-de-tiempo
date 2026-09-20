@@ -498,6 +498,7 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 <div class="respuesta">
 
 
+## Ljung–Box con 48 rezagos
 
 ### Hipótesis, significancia y regla
 
