@@ -502,9 +502,9 @@ rutas <- list(
 evaluaciones <- list()
 ```
 
-## Ruta 1. Temperatura mensual de Nottingham
+## Paso 1. Graficar y nombrar el patrón
 
-### Paso 1. Graficar y nombrar el patrón
+### Ruta 1. Temperatura mensual de Nottingham
 
 ```{r r1-paso1}
 # Se seleccionan los datos de esta ruta y se conserva su calendario.
@@ -516,7 +516,7 @@ plot(serie, main = "Temperatura en Nottingham",
      xlab = "Año", ylab = "Temperatura (°F)")
 ```
 
-## Componentes de la serie (Temperatura en Nottingham)
+#### Componentes de la serie (Temperatura en Nottingham)
 
 | Componente | ¿Se observa? | Evidencia |
 |:-----------------------|:-----------------------|:-----------------------|
@@ -526,9 +526,64 @@ plot(serie, main = "Temperatura en Nottingham",
 | Ciclo | No a simple vista | No hay oscilaciones con peridos superiores a un año. |
 | Episodios atípicos | Prácticamente ninguno | Algún invierno algo más suave o verano algo más fresco, pero dentro del rango habitual; no se aprecian quiebres ni valores extremos aislados. |
 
-### Paso 2. Correlograma y prueba
+### Ruta 2. Consumo trimestral de gas del Reino Unido
+
+```{r r2-paso1}
+# Se seleccionan los datos de esta ruta y se conserva su calendario.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+plot(serie, main = "Consumo de gas en Reino Unido",
+     xlab = "Año", ylab = "Consumo (millones de termias)")
+```
+
+| Componente         | ¿Se observa? | Evidencia   |
+|:-------------------|:-------------|:------------|
+| Nivel              | [Completar]  | [Completar] |
+| Tendencia          | [Completar]  | [Completar] |
+| Estacionalidad     | [Completar]  | [Completar] |
+| Ciclo              | [Completar]  | [Completar] |
+| Episodios atípicos | [Completar]  | [Completar] |
+
+#### Procedimiento adicional de la ruta 2: nivel y amplitud anual
+
+```{r r2-nivel-amplitud}
+# Cada fila de la matriz guarda los cuatro trimestres de un año.
+# rowMeans obtiene el nivel medio; apply con MARGIN = 1 recorre las filas.
+datos_anuales <- matrix(y, ncol = s, byrow = TRUE)
+resumen_anual <- data.frame(
+  Anio = unique(floor(as.numeric(time(serie)))),
+  Nivel = rowMeans(datos_anuales),
+  Amplitud = apply(datos_anuales, MARGIN = 1,
+                  FUN = function(valores) max(valores) - min(valores))
+)
+mostrar_tabla(resumen_anual)
+plot(resumen_anual$Nivel, resumen_anual$Amplitud, pch = 19,
+     xlab = "Nivel medio anual", ylab = "Amplitud estacional anual",
+     main = "Nivel y amplitud: cada punto representa un año")
+mostrar_tabla(data.frame(Correlacion = cor(resumen_anual$Nivel,
+                                          resumen_anual$Amplitud)))
+```
+
+::: respuesta
+**ESCRIBIR AQUÍ — Ruta 2, escala**
+
+-   Decisión: aditiva o multiplicativa:
+-   Justificación apoyada en el gráfico y la correlación:
+:::
+
+## Paso 2. Correlograma y prueba
+
+### Ruta 1. Temperatura mensual de Nottingham
 
 ```{r r1-paso2}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+
 graficar_acf(y, floor(length(y) / 4), "Correlograma de la ruta 1")
 # Se solicitan cuatro múltiplos del período estacional.
 # Se suma 1 para saltar la posición del rezago cero.
@@ -542,9 +597,9 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 **ESCRIBIR AQUÍ — Ruta 1, paso 2**
 
 
-## Ljung–Box con 48 rezagos
+#### Ljung–Box con 48 rezagos
 
-### Hipótesis, significancia y regla
+#### Hipótesis, significancia y regla
 
 $H_0:$ `nottem` es ruido blanco hasta el rezago $m = 48$, contra $H_1:$ no lo es. Con $\alpha = 0{,}05$ se rechaza si
 
@@ -552,11 +607,11 @@ $$
 Q > \chi^2_{48;\,0{,}95} = 65{,}17.
 $$
 
-### Interpretación de Ljung–Box
+#### Interpretación de Ljung–Box
 
 $Q = 4491{,}8$ con valor\_p $< 10^{-12}$: se rechaza $H_0$ con enorme margen. Era esperable — la serie tiene un ciclo estacional casi determinístico, lejos de cualquier noción de ruido blanco.
 
-### ¿Decaen o se mantienen los picos?
+#### ¿Decaen o se mantienen los picos?
 
 Se mantienen:
 
@@ -566,7 +621,7 @@ $$
 
 La caída entre el primer y el último pico es de apenas **14 %**, y ese poco que cae es el efecto de borde de tener menos pares disponibles al calcular rezagos altos con $T = 240$ fijo, no un decaimiento real de la dependencia estacional.
 
-### ¿Qué distingue tipo II de tipo IV?
+#### ¿Qué distingue tipo II de tipo IV?
 
 - En el **tipo II** el correlograma oscila alrededor de cero con período $s$: los picos en $s, 2s, 3s, \dots$ son positivos y los valles intermedios (en $s/2, 3s/2, \dots$) son negativos de magnitud comparable — aquí no se pidió, pero puede verificarse que $r_6 \approx -0{,}88$, casi espejo de $r_{12}$.
 
@@ -574,9 +629,44 @@ La caída entre el primer y el último pico es de apenas **14 %**, y ese poco qu
 
 La simetría casi perfecta de `nottem` alrededor de cero es la firma del **tipo II puro**.
 
-### Paso 3. Partir la muestra
+### Ruta 2. Consumo trimestral de gas del Reino Unido
+
+```{r r2-paso2}
+# Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+
+graficar_acf(y, floor(length(y) / 4), "Correlograma de la ruta 2")
+# Se solicitan cuatro múltiplos del período estacional.
+# Se suma 1 para saltar la posición del rezago cero.
+rezagos <- s * 1:4
+r <- as.numeric(stats::acf(y, lag.max = 4 * s, plot = FALSE)$acf)
+mostrar_tabla(data.frame(Rezago = rezagos, ACF = r[rezagos + 1]))
+mostrar_tabla(resultado_ljung(y, m = 4 * s))
+```
+
+::: respuesta
+**ESCRIBIR AQUÍ — Ruta 2, paso 2**
+
+-   Hipótesis, significancia y regla de decisión:
+-   Interpretación de Ljung–Box:
+-   ¿Los picos en múltiplos de s decaen o se mantienen?:
+-   ¿Qué distingue a los tipos II y IV?:
+:::
+
+## Paso 3. Partir la muestra
+
+### Ruta 1. Temperatura mensual de Nottingham
 
 ```{r r1-paso3}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+
 # El origen o usa los primeros o datos y evalúa exclusivamente el dato o+1.
 origenes <- ruta$origenes
 mostrar_tabla(data.frame(
@@ -593,9 +683,43 @@ mostrar_tabla(data.frame(
 -   Descripción y justificación del esquema de evaluación:
 :::
 
-### Paso 4. Ajustar candidatos en cada origen
+### Ruta 2. Consumo trimestral de gas del Reino Unido
+
+```{r r2-paso3}
+# Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+
+# El origen o usa los primeros o datos y evalúa exclusivamente el dato o+1.
+origenes <- ruta$origenes
+mostrar_tabla(data.frame(
+  Primer_origen = min(origenes), Ultimo_origen = max(origenes),
+  Numero_origenes = length(origenes), Horizonte = 1,
+  Primer_dato_evaluado = min(origenes) + 1,
+  Ultimo_dato_evaluado = max(origenes) + 1
+))
+```
+
+::: respuesta
+**ESCRIBIR AQUÍ — Ruta 2, paso 3**
+
+-   Descripción y justificación del esquema de evaluación:
+:::
+
+## Paso 4. Ajustar candidatos en cada origen
+
+### Ruta 1. Temperatura mensual de Nottingham
 
 ```{r r1-paso4}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+origenes <- ruta$origenes
+
 # evaluar_ruta reestima todos los candidatos en cada origen.
 # Los resultados quedan guardados para comparar, validar y pronosticar.
 evaluaciones$ruta1 <- evaluar_ruta(y, s, origenes, ruta$metodos)
@@ -603,9 +727,35 @@ evaluacion <- evaluaciones$ruta1
 mostrar_tabla(data.frame(Metodo = ruta$metodos))
 ```
 
-### Paso 5. Comparar sobre los mismos orígenes
+### Ruta 2. Consumo trimestral de gas del Reino Unido
+
+```{r r2-paso4}
+# Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+origenes <- ruta$origenes
+
+# evaluar_ruta reestima todos los candidatos en cada origen.
+# Los resultados quedan guardados para comparar, validar y pronosticar.
+evaluaciones$ruta2 <- evaluar_ruta(y, s, origenes, ruta$metodos)
+evaluacion <- evaluaciones$ruta2
+mostrar_tabla(data.frame(Metodo = ruta$metodos))
+```
+
+## Paso 5. Comparar sobre los mismos orígenes
+
+### Ruta 1. Temperatura mensual de Nottingham
 
 ```{r r1-paso5}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+evaluacion <- evaluaciones$ruta1
+
 mostrar_tabla(evaluacion$tabla)
 # Se conservan métricas numéricas para calcular la diferencia con el referente.
 # Una reducción positiva significa un error menor respecto al ingenuo estacional.
@@ -631,9 +781,53 @@ mostrar_tabla(comparacion)
     tramo?:
 :::
 
-### Paso 6. Validar al ganador
+### Ruta 2. Consumo trimestral de gas del Reino Unido
+
+```{r r2-paso5}
+# Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+evaluacion <- evaluaciones$ruta2
+
+mostrar_tabla(evaluacion$tabla)
+# Se conservan métricas numéricas para calcular la diferencia con el referente.
+# Una reducción positiva significa un error menor respecto al ingenuo estacional.
+tabla <- evaluacion$tabla
+referente <- tabla[tabla$Metodo == "Ingenuo estacional", ]
+comparacion <- data.frame(
+  Metrica = c("RMSE", "MAD", "MAPE_porcentaje"),
+  Ganador = as.numeric(tabla[1, c("RMSE", "MAD", "MAPE_porcentaje")]),
+  Ingenuo = as.numeric(referente[1, c("RMSE", "MAD", "MAPE_porcentaje")])
+)
+comparacion$Reduccion <- comparacion$Ingenuo - comparacion$Ganador
+comparacion$Reduccion_porcentaje <- 100 * comparacion$Reduccion / comparacion$Ingenuo
+mostrar_tabla(comparacion)
+```
+
+::: respuesta
+**ESCRIBIR AQUÍ — Ruta 2, paso 5**
+
+-   Método seleccionado según RMSE:
+-   ¿Supera al ingenuo estacional y por cuánto?:
+-   ¿Por qué se necesitan los mismos orígenes y la fila del referente?:
+-   ¿Por qué no basta una medida relativa con denominador de otro
+    tramo?:
+:::
+
+## Paso 6. Validar al ganador
+
+### Ruta 1. Temperatura mensual de Nottingham
 
 ```{r r1-paso6}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+evaluacion <- evaluaciones$ruta1
+
 # La columna elegida contiene errores fuera de muestra, uno por origen.
 errores_ganador <- evaluacion$errores[, evaluacion$ganador]
 m_error <- floor(length(errores_ganador) / 4)
@@ -680,6 +874,8 @@ stats::qqline(errores_ganador, col = "red")
 -   Limitaciones de la validación:
 :::
 
+#### Procedimiento adicional de la ruta 1: residuos de medias estacionales
+
 ```{r r1-residuos-medias}
 # Se ajustan doce medias estacionales sobre toda la serie para la comparación
 # adicional solicitada. Aquí sí se trata de residuos dentro de muestra.
@@ -697,202 +893,16 @@ graficar_acf(residuos_medias, 24, "Residuos: medias estacionales")
 -   Explicación de las diferencias entre ambos diagnósticos:
 :::
 
-### Paso 7. Pronosticar un ciclo completo
+### Ruta 2. Consumo trimestral de gas del Reino Unido
 
-```{r r1-paso7}
-# Se reajusta el método seleccionado con toda la serie para proyectar s períodos.
-# La banda es heurística: pronóstico +/- 1.96 desviaciones de los errores
-# de horizonte uno. Se conserva su ancho para todos los horizontes.
-futuros <- pronosticar_metodo(y, s, evaluacion$ganador, h = s)
-desviacion_error <- stats::sd(errores_ganador)
-limite_inferior <- futuros - stats::qnorm(0.975) * desviacion_error
-limite_superior <- futuros + stats::qnorm(0.975) * desviacion_error
-tiempo_futuro <- tail(as.numeric(time(serie)), 1) + seq_len(s) / s
-pronostico_final <- data.frame(
-  Horizonte = seq_len(s), Anio = floor(tiempo_futuro + 1e-8),
-  Periodo = round((tiempo_futuro - floor(tiempo_futuro + 1e-8)) * s) + 1,
-  Pronostico = futuros, Inferior_heuristico = limite_inferior,
-  Superior_heuristico = limite_superior
-)
-mostrar_tabla(pronostico_final)
-# Se muestran los cuatro últimos ciclos y un ciclo futuro.
-inicio <- max(1, length(y) - 4 * s + 1)
-indices <- inicio:length(y)
-plot(as.numeric(time(serie))[indices], y[indices], type = "l",
-     xlim = range(as.numeric(time(serie))[indices], tiempo_futuro),
-     ylim = range(y[indices], limite_inferior, limite_superior),
-     xlab = "Año", ylab = "Valor", main = "Pronóstico y banda heurística")
-polygon(c(tiempo_futuro, rev(tiempo_futuro)),
-        c(limite_inferior, rev(limite_superior)),
-        col = adjustcolor("steelblue", alpha.f = 0.2), border = NA)
-lines(tiempo_futuro, futuros, type = "o", col = "blue")
-legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
-       col = c("black", "blue", "steelblue"), lty = c(1, 1, 1), cex = 0.8)
-```
-
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 7**
-
--   Explique en dos líneas por qué la banda es heurística:
--   Interpretación sustantiva, línea 1:
--   Interpretación sustantiva, línea 2:
--   Interpretación sustantiva, línea 3:
-:::
-
-### Paso 8. Contraste de tipo II frente a tipo IV
-
-```{r r1-paso8}
-# Los dos modelos usan los mismos datos; el segundo agrega una tendencia.
-# anova con test = "F" compara la reducción de suma de cuadrados residual.
-datos_F <- data.frame(y = y, t = seq_along(y), q = factor(cycle(serie)))
-modelo_reducido <- stats::lm(y ~ q, data = datos_F)
-modelo_completo <- stats::lm(y ~ t + q, data = datos_F)
-comparacion_F <- stats::anova(modelo_reducido, modelo_completo, test = "F")
-pendiente <- unname(stats::coef(modelo_completo)["t"])
-mostrar_tabla(data.frame(
-  F = comparacion_F$F[2], valor_p = comparacion_F[["Pr(>F)"]][2],
-  Pendiente_F_por_mes = pendiente, Pendiente_F_por_decada = 120 * pendiente
-))
-```
-
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 8**
-
--   Hipótesis nula y alternativa:
--   Significancia y regla de decisión:
--   Conclusión estadística:
--   Interpretación de la magnitud en grados Fahrenheit por década:
--   ¿La prueba y la magnitud del efecto apuntan en la misma dirección?:
-:::
-
-## Ruta 2. Consumo trimestral de gas del Reino Unido
-
-### Paso 1. Graficar y nombrar el patrón
-
-```{r r2-paso1}
-# Se seleccionan los datos de esta ruta y se conserva su calendario.
+```{r r2-paso6}
+# Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
 ruta <- rutas$ruta2
 serie <- ruta$serie
 y <- as.numeric(serie)
 s <- ruta$s
-plot(serie, main = "Consumo de gas en Reino Unido",
-     xlab = "Año", ylab = "Consumo (millones de termias)")
-```
-
-| Componente         | ¿Se observa? | Evidencia   |
-|:-------------------|:-------------|:------------|
-| Nivel              | [Completar]  | [Completar] |
-| Tendencia          | [Completar]  | [Completar] |
-| Estacionalidad     | [Completar]  | [Completar] |
-| Ciclo              | [Completar]  | [Completar] |
-| Episodios atípicos | [Completar]  | [Completar] |
-
-```{r r2-nivel-amplitud}
-# Cada fila de la matriz guarda los cuatro trimestres de un año.
-# rowMeans obtiene el nivel medio; apply con MARGIN = 1 recorre las filas.
-datos_anuales <- matrix(y, ncol = s, byrow = TRUE)
-resumen_anual <- data.frame(
-  Anio = unique(floor(as.numeric(time(serie)))),
-  Nivel = rowMeans(datos_anuales),
-  Amplitud = apply(datos_anuales, MARGIN = 1,
-                  FUN = function(valores) max(valores) - min(valores))
-)
-mostrar_tabla(resumen_anual)
-plot(resumen_anual$Nivel, resumen_anual$Amplitud, pch = 19,
-     xlab = "Nivel medio anual", ylab = "Amplitud estacional anual",
-     main = "Nivel y amplitud: cada punto representa un año")
-mostrar_tabla(data.frame(Correlacion = cor(resumen_anual$Nivel,
-                                          resumen_anual$Amplitud)))
-```
-
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, escala**
-
--   Decisión: aditiva o multiplicativa:
--   Justificación apoyada en el gráfico y la correlación:
-:::
-
-### Paso 2. Correlograma y prueba
-
-```{r r2-paso2}
-graficar_acf(y, floor(length(y) / 4), "Correlograma de la ruta 2")
-# Se solicitan cuatro múltiplos del período estacional.
-# Se suma 1 para saltar la posición del rezago cero.
-rezagos <- s * 1:4
-r <- as.numeric(stats::acf(y, lag.max = 4 * s, plot = FALSE)$acf)
-mostrar_tabla(data.frame(Rezago = rezagos, ACF = r[rezagos + 1]))
-mostrar_tabla(resultado_ljung(y, m = 4 * s))
-```
-
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 2**
-
--   Hipótesis, significancia y regla de decisión:
--   Interpretación de Ljung–Box:
--   ¿Los picos en múltiplos de s decaen o se mantienen?:
--   ¿Qué distingue a los tipos II y IV?:
-:::
-
-### Paso 3. Partir la muestra
-
-```{r r2-paso3}
-# El origen o usa los primeros o datos y evalúa exclusivamente el dato o+1.
-origenes <- ruta$origenes
-mostrar_tabla(data.frame(
-  Primer_origen = min(origenes), Ultimo_origen = max(origenes),
-  Numero_origenes = length(origenes), Horizonte = 1,
-  Primer_dato_evaluado = min(origenes) + 1,
-  Ultimo_dato_evaluado = max(origenes) + 1
-))
-```
-
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 3**
-
--   Descripción y justificación del esquema de evaluación:
-:::
-
-### Paso 4. Ajustar candidatos en cada origen
-
-```{r r2-paso4}
-# evaluar_ruta reestima todos los candidatos en cada origen.
-# Los resultados quedan guardados para comparar, validar y pronosticar.
-evaluaciones$ruta2 <- evaluar_ruta(y, s, origenes, ruta$metodos)
 evaluacion <- evaluaciones$ruta2
-mostrar_tabla(data.frame(Metodo = ruta$metodos))
-```
 
-### Paso 5. Comparar sobre los mismos orígenes
-
-```{r r2-paso5}
-mostrar_tabla(evaluacion$tabla)
-# Se conservan métricas numéricas para calcular la diferencia con el referente.
-# Una reducción positiva significa un error menor respecto al ingenuo estacional.
-tabla <- evaluacion$tabla
-referente <- tabla[tabla$Metodo == "Ingenuo estacional", ]
-comparacion <- data.frame(
-  Metrica = c("RMSE", "MAD", "MAPE_porcentaje"),
-  Ganador = as.numeric(tabla[1, c("RMSE", "MAD", "MAPE_porcentaje")]),
-  Ingenuo = as.numeric(referente[1, c("RMSE", "MAD", "MAPE_porcentaje")])
-)
-comparacion$Reduccion <- comparacion$Ingenuo - comparacion$Ganador
-comparacion$Reduccion_porcentaje <- 100 * comparacion$Reduccion / comparacion$Ingenuo
-mostrar_tabla(comparacion)
-```
-
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 5**
-
--   Método seleccionado según RMSE:
--   ¿Supera al ingenuo estacional y por cuánto?:
--   ¿Por qué se necesitan los mismos orígenes y la fila del referente?:
--   ¿Por qué no basta una medida relativa con denominador de otro
-    tramo?:
-:::
-
-### Paso 6. Validar al ganador
-
-```{r r2-paso6}
 # La columna elegida contiene errores fuera de muestra, uno por origen.
 errores_ganador <- evaluacion$errores[, evaluacion$ganador]
 m_error <- floor(length(errores_ganador) / 4)
@@ -939,9 +949,69 @@ stats::qqline(errores_ganador, col = "red")
 -   Limitaciones de la validación:
 :::
 
-### Paso 7. Pronosticar un ciclo completo
+## Paso 7. Pronosticar un ciclo completo
+
+### Ruta 1. Temperatura mensual de Nottingham
+
+```{r r1-paso7}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+evaluacion <- evaluaciones$ruta1
+errores_ganador <- evaluacion$errores[, evaluacion$ganador]
+
+# Se reajusta el método seleccionado con toda la serie para proyectar s períodos.
+# La banda es heurística: pronóstico +/- 1.96 desviaciones de los errores
+# de horizonte uno. Se conserva su ancho para todos los horizontes.
+futuros <- pronosticar_metodo(y, s, evaluacion$ganador, h = s)
+desviacion_error <- stats::sd(errores_ganador)
+limite_inferior <- futuros - stats::qnorm(0.975) * desviacion_error
+limite_superior <- futuros + stats::qnorm(0.975) * desviacion_error
+tiempo_futuro <- tail(as.numeric(time(serie)), 1) + seq_len(s) / s
+pronostico_final <- data.frame(
+  Horizonte = seq_len(s), Anio = floor(tiempo_futuro + 1e-8),
+  Periodo = round((tiempo_futuro - floor(tiempo_futuro + 1e-8)) * s) + 1,
+  Pronostico = futuros, Inferior_heuristico = limite_inferior,
+  Superior_heuristico = limite_superior
+)
+mostrar_tabla(pronostico_final)
+# Se muestran los cuatro últimos ciclos y un ciclo futuro.
+inicio <- max(1, length(y) - 4 * s + 1)
+indices <- inicio:length(y)
+plot(as.numeric(time(serie))[indices], y[indices], type = "l",
+     xlim = range(as.numeric(time(serie))[indices], tiempo_futuro),
+     ylim = range(y[indices], limite_inferior, limite_superior),
+     xlab = "Año", ylab = "Valor", main = "Pronóstico y banda heurística")
+polygon(c(tiempo_futuro, rev(tiempo_futuro)),
+        c(limite_inferior, rev(limite_superior)),
+        col = adjustcolor("steelblue", alpha.f = 0.2), border = NA)
+lines(tiempo_futuro, futuros, type = "o", col = "blue")
+legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
+       col = c("black", "blue", "steelblue"), lty = c(1, 1, 1), cex = 0.8)
+```
+
+::: respuesta
+**ESCRIBIR AQUÍ — Ruta 1, paso 7**
+
+-   Explique en dos líneas por qué la banda es heurística:
+-   Interpretación sustantiva, línea 1:
+-   Interpretación sustantiva, línea 2:
+-   Interpretación sustantiva, línea 3:
+:::
+
+### Ruta 2. Consumo trimestral de gas del Reino Unido
 
 ```{r r2-paso7}
+# Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+evaluacion <- evaluaciones$ruta2
+errores_ganador <- evaluacion$errores[, evaluacion$ganador]
+
 # Se reajusta el método seleccionado con toda la serie para proyectar s períodos.
 # La banda es heurística: pronóstico +/- 1.96 desviaciones de los errores
 # de horizonte uno. Se conserva su ancho para todos los horizontes.
@@ -979,6 +1049,40 @@ legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
 -   Interpretación sustantiva, línea 1:
 -   Interpretación sustantiva, línea 2:
 -   Interpretación sustantiva, línea 3:
+:::
+
+## Paso 8. Contraste de tipo II frente a tipo IV (solo ruta 1)
+
+### Ruta 1. Temperatura mensual de Nottingham
+
+```{r r1-paso8}
+# Se recuperan los datos de la ruta 1 para avanzar en paralelo por pasos.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+
+# Los dos modelos usan los mismos datos; el segundo agrega una tendencia.
+# anova con test = "F" compara la reducción de suma de cuadrados residual.
+datos_F <- data.frame(y = y, t = seq_along(y), q = factor(cycle(serie)))
+modelo_reducido <- stats::lm(y ~ q, data = datos_F)
+modelo_completo <- stats::lm(y ~ t + q, data = datos_F)
+comparacion_F <- stats::anova(modelo_reducido, modelo_completo, test = "F")
+pendiente <- unname(stats::coef(modelo_completo)["t"])
+mostrar_tabla(data.frame(
+  F = comparacion_F$F[2], valor_p = comparacion_F[["Pr(>F)"]][2],
+  Pendiente_F_por_mes = pendiente, Pendiente_F_por_decada = 120 * pendiente
+))
+```
+
+::: respuesta
+**ESCRIBIR AQUÍ — Ruta 1, paso 8**
+
+-   Hipótesis nula y alternativa:
+-   Significancia y regla de decisión:
+-   Conclusión estadística:
+-   Interpretación de la magnitud en grados Fahrenheit por década:
+-   ¿La prueba y la magnitud del efecto apuntan en la misma dirección?:
 :::
 
 # 4. Estación C. Auditoría
