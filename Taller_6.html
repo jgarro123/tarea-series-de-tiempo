@@ -1895,12 +1895,17 @@ mostrar_tabla(comparacion)</code></pre>
 <div class="respuesta">
 <p><strong>ESCRIBIR AQUÍ — Ruta 1, paso 5</strong></p>
 <ul>
-<li>Método seleccionado según RMSE:</li>
-<li>¿Supera al ingenuo estacional y por cuánto?:</li>
-<li>¿Por qué se necesitan los mismos orígenes y la fila del
-referente?:</li>
-<li>¿Por qué no basta una medida relativa con denominador de otro
-tramo?:</li>
+<li><strong>Método seleccionado según RMSE:</strong> Tendencia y
+variables ficticias, con un RMSE de <strong>1,9686</strong>.</li>
+<li><strong>¿Supera al ingenuo estacional y por cuánto?:</strong> Sí.
+Reduce el RMSE en <strong>0,9721</strong>, equivalente a <strong>33,06
+%</strong>.</li>
+<li><strong>¿Por qué se necesitan los mismos orígenes y la fila del
+referente?:</strong> Para comparar todos los métodos de manera justa
+sobre exactamente los mismos datos.</li>
+<li><strong>¿Por qué no basta una medida relativa con denominador de
+otro tramo?:</strong> Porque los cambios de nivel o variabilidad entre
+tramos pueden distorsionar la comparación.</li>
 </ul>
 </div>
 </div>
@@ -2018,12 +2023,17 @@ mostrar_tabla(comparacion)</code></pre>
 <div class="respuesta">
 <p><strong>ESCRIBIR AQUÍ — Ruta 2, paso 5</strong></p>
 <ul>
-<li>Método seleccionado según RMSE:</li>
-<li>¿Supera al ingenuo estacional y por cuánto?:</li>
-<li>¿Por qué se necesitan los mismos orígenes y la fila del
-referente?:</li>
-<li>¿Por qué no basta una medida relativa con denominador de otro
-tramo?:</li>
+<li><strong>Método seleccionado según RMSE:</strong> Holt-Winters
+aditivo, con un RMSE de <strong>43,8790</strong>.</li>
+<li><strong>¿Supera al ingenuo estacional y por cuánto?:</strong> Sí.
+Reduce el RMSE en <strong>8,0851</strong>, equivalente a <strong>15,56
+%</strong>.</li>
+<li><strong>¿Por qué se necesitan los mismos orígenes y la fila del
+referente?:</strong> Para comparar todos los métodos de manera justa
+sobre exactamente los mismos datos.</li>
+<li><strong>¿Por qué no basta una medida relativa con denominador de
+otro tramo?:</strong> Porque los cambios de nivel o variabilidad entre
+tramos pueden distorsionar la comparación.</li>
 </ul>
 </div>
 </div>
@@ -2144,12 +2154,21 @@ stats::qqline(errores_ganador, col = &quot;red&quot;)</code></pre>
 <div class="respuesta">
 <p><strong>ESCRIBIR AQUÍ — Ruta 1, paso 6</strong></p>
 <ul>
-<li>Hipótesis, regla de decisión y conclusión de Ljung–Box:</li>
-<li>Interpretación del correlograma:</li>
-<li>Hipótesis e interpretación de Jarque–Bera, si corresponde:</li>
-<li>Lectura del gráfico Q-Q:</li>
-<li>Interpretación del error medio frente al RMSE:</li>
-<li>Limitaciones de la validación:</li>
+<li><strong>Ljung–Box:</strong> <span class="math inline">\(H_0\)</span>
+establece que no hay autocorrelación hasta el rezago 10. Como <span class="math inline">\(Q=8{,}7342\)</span> y el valor <span class="math inline">\(p=0{,}5575&gt;0{,}05\)</span>, no se rechaza <span class="math inline">\(H_0\)</span>.</li>
+<li><strong>Correlograma:</strong> No muestra autocorrelaciones
+significativas; los errores se comportan aproximadamente como ruido
+blanco.</li>
+<li><strong>Jarque–Bera:</strong> <span class="math inline">\(H_0\)</span> supone normalidad. Como <span class="math inline">\(JB=1{,}3417\)</span> y el valor <span class="math inline">\(p=0{,}5113&gt;0{,}05\)</span>, no se rechaza la
+normalidad.</li>
+<li><strong>Gráfico Q-Q:</strong> Los puntos siguen aproximadamente la
+recta, sin desviaciones graves de la normalidad.</li>
+<li><strong>Error medio frente al RMSE:</strong> El error medio es
+<strong>0,1109</strong>, pequeño frente al RMSE de
+<strong>1,9686</strong>; no se observa un sesgo importante.</li>
+<li><strong>Limitaciones:</strong> Solo se usan 40 errores y el ganador
+se seleccionó con la misma muestra, por lo que las pruebas tienen
+potencia limitada y son aproximadas.</li>
 </ul>
 </div>
 <div id="procedimiento-adicional-de-la-ruta-1-residuos-de-medias-estacionales" class="section level4">
@@ -2188,8 +2207,14 @@ mostrar_tabla(resultado_ljung(residuos_medias, m = 24, p = 12))</code></pre>
 <div class="respuesta">
 <p><strong>ESCRIBIR AQUÍ — Ruta 1, comparación adicional</strong></p>
 <ul>
-<li>Comparación con los errores de origen móvil del ganador:</li>
-<li>Explicación de las diferencias entre ambos diagnósticos:</li>
+<li><strong>Comparación:</strong> En los errores de origen móvil no se
+rechaza la ausencia de autocorrelación (<span class="math inline">\(p=0{,}5575\)</span>); en los residuos de medias
+estacionales sí se rechaza (<span class="math inline">\(p=6{,}929\times10^{-6}\)</span>).</li>
+<li><strong>Explicación:</strong> El ganador incluye tendencia y
+estacionalidad y se evalúa fuera de muestra, mientras que las medias
+estacionales solo eliminan la estacionalidad y dejan dependencia
+temporal. Además, ambos diagnósticos usan distintos tamaños de muestra,
+rezagos y grados de libertad.</li>
 </ul>
 </div>
 </div>
@@ -2298,12 +2323,22 @@ stats::qqline(errores_ganador, col = &quot;red&quot;)</code></pre>
 <div class="respuesta">
 <p><strong>ESCRIBIR AQUÍ — Ruta 2, paso 6</strong></p>
 <ul>
-<li>Hipótesis, regla de decisión y conclusión de Ljung–Box:</li>
-<li>Interpretación del correlograma:</li>
-<li>Hipótesis e interpretación de Jarque–Bera, si corresponde:</li>
-<li>Lectura del gráfico Q-Q:</li>
-<li>Interpretación del error medio frente al RMSE:</li>
-<li>Limitaciones de la validación:</li>
+<li><strong>Ljung–Box:</strong> <span class="math inline">\(H_0\)</span>
+establece que no hay autocorrelación hasta el rezago 7. Como <span class="math inline">\(Q=6{,}3239\)</span> y el valor <span class="math inline">\(p=0{,}5025&gt;0{,}05\)</span>, no se rechaza <span class="math inline">\(H_0\)</span>.</li>
+<li><strong>Correlograma:</strong> No muestra autocorrelaciones
+significativas; los errores se comportan aproximadamente como ruido
+blanco.</li>
+<li><strong>Jarque–Bera:</strong> No se calcula porque solo hay 28
+errores, menos del mínimo operativo de 40.</li>
+<li><strong>Gráfico Q-Q:</strong> Los puntos siguen aproximadamente la
+recta, aunque la muestra pequeña limita la evaluación de
+normalidad.</li>
+<li><strong>Error medio frente al RMSE:</strong> El error medio es
+<strong>0,6866</strong>, muy pequeño frente al RMSE de
+<strong>43,8790</strong>; no se observa un sesgo importante.</li>
+<li><strong>Limitaciones:</strong> Solo se usan 28 errores y el ganador
+se seleccionó con la misma muestra; por ello, las pruebas tienen poca
+potencia y deben interpretarse con cautela.</li>
 </ul>
 </div>
 </div>
@@ -2573,10 +2608,19 @@ legend(&quot;topleft&quot;, c(&quot;Observado&quot;, &quot;Pronóstico&quot;, &q
 <div class="respuesta">
 <p><strong>ESCRIBIR AQUÍ — Ruta 2, paso 7</strong></p>
 <ul>
-<li>Explique en dos líneas por qué la banda es heurística:</li>
-<li>Interpretación sustantiva, línea 1:</li>
-<li>Interpretación sustantiva, línea 2:</li>
-<li>Interpretación sustantiva, línea 3:</li>
+<li><strong>¿Por qué la banda es heurística?:</strong> Se construye como
+pronóstico <span class="math inline">\(\pm 1{,}96\)</span> desviaciones
+de los errores de horizonte uno y conserva el mismo ancho. No incorpora
+la incertidumbre de los parámetros ni el aumento del error con el
+horizonte, por lo que no es un intervalo formal.</li>
+<li><strong>Interpretación, línea 1:</strong> Para 1987 se pronostica un
+máximo de <strong>1205,388</strong> en el primer trimestre.</li>
+<li><strong>Interpretación, línea 2:</strong> El consumo baja a
+<strong>654,165</strong> en el segundo trimestre y alcanza un mínimo de
+<strong>387,626</strong> en el tercero.</li>
+<li><strong>Interpretación, línea 3:</strong> En el cuarto trimestre se
+espera una recuperación hasta <strong>823,750</strong>, manteniendo el
+patrón estacional de la serie.</li>
 </ul>
 </div>
 </div>

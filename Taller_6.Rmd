@@ -753,11 +753,10 @@ mostrar_tabla(comparacion)
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 1, paso 5**
 
--   Método seleccionado según RMSE:
--   ¿Supera al ingenuo estacional y por cuánto?:
--   ¿Por qué se necesitan los mismos orígenes y la fila del referente?:
--   ¿Por qué no basta una medida relativa con denominador de otro
-    tramo?:
+-   **Método seleccionado según RMSE:** Tendencia y variables ficticias, con un RMSE de **1,9686**.
+-   **¿Supera al ingenuo estacional y por cuánto?:** Sí. Reduce el RMSE en **0,9721**, equivalente a **33,06 %**.
+-   **¿Por qué se necesitan los mismos orígenes y la fila del referente?:** Para comparar todos los métodos de manera justa sobre exactamente los mismos datos.
+-   **¿Por qué no basta una medida relativa con denominador de otro tramo?:** Porque los cambios de nivel o variabilidad entre tramos pueden distorsionar la comparación.
 :::
 
 ### Ruta 2. Consumo trimestral de gas del Reino Unido
@@ -788,11 +787,10 @@ mostrar_tabla(comparacion)
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 2, paso 5**
 
--   Método seleccionado según RMSE:
--   ¿Supera al ingenuo estacional y por cuánto?:
--   ¿Por qué se necesitan los mismos orígenes y la fila del referente?:
--   ¿Por qué no basta una medida relativa con denominador de otro
-    tramo?:
+-   **Método seleccionado según RMSE:** Holt-Winters aditivo, con un RMSE de **43,8790**.
+-   **¿Supera al ingenuo estacional y por cuánto?:** Sí. Reduce el RMSE en **8,0851**, equivalente a **15,56 %**.
+-   **¿Por qué se necesitan los mismos orígenes y la fila del referente?:** Para comparar todos los métodos de manera justa sobre exactamente los mismos datos.
+-   **¿Por qué no basta una medida relativa con denominador de otro tramo?:** Porque los cambios de nivel o variabilidad entre tramos pueden distorsionar la comparación.
 :::
 
 ## Paso 6. Validar al ganador
@@ -845,12 +843,12 @@ stats::qqline(errores_ganador, col = "red")
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 1, paso 6**
 
--   Hipótesis, regla de decisión y conclusión de Ljung–Box:
--   Interpretación del correlograma:
--   Hipótesis e interpretación de Jarque–Bera, si corresponde:
--   Lectura del gráfico Q-Q:
--   Interpretación del error medio frente al RMSE:
--   Limitaciones de la validación:
+-   **Ljung–Box:** $H_0$ establece que no hay autocorrelación hasta el rezago 10. Como $Q=8{,}7342$ y el valor $p=0{,}5575>0{,}05$, no se rechaza $H_0$.
+-   **Correlograma:** No muestra autocorrelaciones significativas; los errores se comportan aproximadamente como ruido blanco.
+-   **Jarque–Bera:** $H_0$ supone normalidad. Como $JB=1{,}3417$ y el valor $p=0{,}5113>0{,}05$, no se rechaza la normalidad.
+-   **Gráfico Q-Q:** Los puntos siguen aproximadamente la recta, sin desviaciones graves de la normalidad.
+-   **Error medio frente al RMSE:** El error medio es **0,1109**, pequeño frente al RMSE de **1,9686**; no se observa un sesgo importante.
+-   **Limitaciones:** Solo se usan 40 errores y el ganador se seleccionó con la misma muestra, por lo que las pruebas tienen potencia limitada y son aproximadas.
 :::
 
 #### Procedimiento adicional de la ruta 1: residuos de medias estacionales
@@ -868,8 +866,8 @@ graficar_acf(residuos_medias, 24, "Residuos: medias estacionales")
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 1, comparación adicional**
 
--   Comparación con los errores de origen móvil del ganador:
--   Explicación de las diferencias entre ambos diagnósticos:
+-   **Comparación:** En los errores de origen móvil no se rechaza la ausencia de autocorrelación ($p=0{,}5575$); en los residuos de medias estacionales sí se rechaza ($p=6{,}929\times10^{-6}$).
+-   **Explicación:** El ganador incluye tendencia y estacionalidad y se evalúa fuera de muestra, mientras que las medias estacionales solo eliminan la estacionalidad y dejan dependencia temporal. Además, ambos diagnósticos usan distintos tamaños de muestra, rezagos y grados de libertad.
 :::
 
 ### Ruta 2. Consumo trimestral de gas del Reino Unido
@@ -920,12 +918,12 @@ stats::qqline(errores_ganador, col = "red")
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 2, paso 6**
 
--   Hipótesis, regla de decisión y conclusión de Ljung–Box:
--   Interpretación del correlograma:
--   Hipótesis e interpretación de Jarque–Bera, si corresponde:
--   Lectura del gráfico Q-Q:
--   Interpretación del error medio frente al RMSE:
--   Limitaciones de la validación:
+-   **Ljung–Box:** $H_0$ establece que no hay autocorrelación hasta el rezago 7. Como $Q=6{,}3239$ y el valor $p=0{,}5025>0{,}05$, no se rechaza $H_0$.
+-   **Correlograma:** No muestra autocorrelaciones significativas; los errores se comportan aproximadamente como ruido blanco.
+-   **Jarque–Bera:** No se calcula porque solo hay 28 errores, menos del mínimo operativo de 40.
+-   **Gráfico Q-Q:** Los puntos siguen aproximadamente la recta, aunque la muestra pequeña limita la evaluación de normalidad.
+-   **Error medio frente al RMSE:** El error medio es **0,6866**, muy pequeño frente al RMSE de **43,8790**; no se observa un sesgo importante.
+-   **Limitaciones:** Solo se usan 28 errores y el ganador se seleccionó con la misma muestra; por ello, las pruebas tienen poca potencia y deben interpretarse con cautela.
 :::
 
 ## Paso 7. Pronosticar un ciclo completo
@@ -974,10 +972,10 @@ legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 1, paso 7**
 
--   Explique en dos líneas por qué la banda es heurística:
--   Interpretación sustantiva, línea 1:
--   Interpretación sustantiva, línea 2:
--   Interpretación sustantiva, línea 3:
+-   **¿Por qué la banda es heurística?:** Se construye como pronóstico $\pm 1{,}96$ desviaciones de los errores de horizonte uno y conserva el mismo ancho. No incorpora la incertidumbre de los parámetros ni el aumento del error con el horizonte, por lo que no es un intervalo formal.
+-   **Interpretación, línea 1:** Para 1940 se pronostican temperaturas cercanas a **40** grados al inicio del año, con un mínimo de **39,789** en febrero.
+-   **Interpretación, línea 2:** La temperatura aumenta hasta alcanzar un máximo de **62,499** en julio.
+-   **Interpretación, línea 3:** Después disminuye gradualmente hasta **40,129** en diciembre, reproduciendo el patrón estacional anual.
 :::
 
 ### Ruta 2. Consumo trimestral de gas del Reino Unido
@@ -1024,10 +1022,10 @@ legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 2, paso 7**
 
--   Explique en dos líneas por qué la banda es heurística:
--   Interpretación sustantiva, línea 1:
--   Interpretación sustantiva, línea 2:
--   Interpretación sustantiva, línea 3:
+-   **¿Por qué la banda es heurística?:** Se construye como pronóstico $\pm 1{,}96$ desviaciones de los errores de horizonte uno y conserva el mismo ancho. No incorpora la incertidumbre de los parámetros ni el aumento del error con el horizonte, por lo que no es un intervalo formal.
+-   **Interpretación, línea 1:** Para 1987 se pronostica un máximo de **1205,388** en el primer trimestre.
+-   **Interpretación, línea 2:** El consumo baja a **654,165** en el segundo trimestre y alcanza un mínimo de **387,626** en el tercero.
+-   **Interpretación, línea 3:** En el cuarto trimestre se espera una recuperación hasta **823,750**, manteniendo el patrón estacional de la serie.
 :::
 
 ## Paso 8. Contraste de tipo II frente a tipo IV (solo ruta 1)
