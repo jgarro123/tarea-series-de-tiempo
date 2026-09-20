@@ -564,13 +564,37 @@ demostraciones</a>
 <ul>
 <li><a href="#d.1.-actualización-de-la-media-móvil" id="toc-d.1.-actualización-de-la-media-móvil">D.1. Actualización de la
 media móvil</a></li>
+</ul></li>
+<li><a href="#d.1-demostración" id="toc-d.1-demostración">D.1 —
+Demostración</a>
+<ul>
+<li><a href="#costo-de-actualizar-frente-a-recalcular" id="toc-costo-de-actualizar-frente-a-recalcular">Costo de actualizar
+frente a recalcular</a></li>
+</ul></li>
 <li><a href="#d.2.-recursión-del-suavizamiento-exponencial" id="toc-d.2.-recursión-del-suavizamiento-exponencial">D.2. Recursión del
 suavizamiento exponencial</a></li>
-<li><a href="#d.3.-primera-diferencia-de-una-tendencia-lineal" id="toc-d.3.-primera-diferencia-de-una-tendencia-lineal">D.3. Primera
-diferencia de una tendencia lineal</a></li>
+<li><a href="#d.2-demostración" id="toc-d.2-demostración">D.2 —
+Demostración</a>
+<ul>
+<li><a href="#valores-a-guardar-y-operaciones" id="toc-valores-a-guardar-y-operaciones">Valores a guardar y
+operaciones</a></li>
+</ul></li>
+<li><a href="#d.3-demostración" id="toc-d.3-demostración">D.3 —
+Demostración</a>
+<ul>
+<li><a href="#a-diferenciar-una-tendencia-lineal-elimina-el-nivel-y-convierte-la-pendiente-en-la-media" id="toc-a-diferenciar-una-tendencia-lineal-elimina-el-nivel-y-convierte-la-pendiente-en-la-media">a)
+Diferenciar una tendencia lineal elimina el nivel y convierte la
+pendiente en la media</a></li>
+<li><a href="#b-la-diferencia-de-ruido-blanco-es-una-ma1-con-theta--1" id="toc-b-la-diferencia-de-ruido-blanco-es-una-ma1-con-theta--1">b) La
+diferencia de ruido blanco es una MA(1) con <span class="math inline">\(\theta = -1\)</span></a></li>
+<li><a href="#c-u_t-no-es-ruido-blanco-la-firma-de-la-sobrediferenciación" id="toc-c-u_t-no-es-ruido-blanco-la-firma-de-la-sobrediferenciación">c)
+<span class="math inline">\(\{u_t\}\)</span> no es ruido blanco: la
+firma de la sobrediferenciación</a></li>
+<li><a href="#estacionariedad-en-media-sin-ruido-blanco-sí." id="toc-estacionariedad-en-media-sin-ruido-blanco-sí.">¿Estacionariedad
+en media sin ruido blanco? Sí.</a></li>
+</ul></li>
 <li><a href="#d.4.-ficticias-y-medias-estacionales" id="toc-d.4.-ficticias-y-medias-estacionales">D.4. Ficticias y medias
 estacionales</a></li>
-</ul></li>
 <li><a href="#cierre-autoevaluación" id="toc-cierre-autoevaluación">6.
 Cierre: autoevaluación</a></li>
 <li><a href="#referencias-de-implementación" id="toc-referencias-de-implementación">Referencias de
@@ -3095,7 +3119,6 @@ suma &lt;- sapply(3:60, function(t) {
   a * sum((1 - a)^i * y[t - 1 - i]) + (1 - a)^(t - 2) * y[1]
 })
 max(abs(yh[3:60] - suma))</code></pre>
-<p>[1] 1.77636e-15</p>
 <p>[1] 1.77636e-15</p>
 <p>De nuevo la diferencia es del orden de 10 − 15 : la recursión y la
 suma infinita truncada coinciden numéricamente. ## D.3. Primera
