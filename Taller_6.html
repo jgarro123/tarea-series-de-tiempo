@@ -2993,7 +2993,6 @@ suma &lt;- sapply(3:60, function(t) {
 })
 max(abs(yh[3:60] - suma))</code></pre>
 <p>[1] 1.77636e-15</p>
-<p>[1] 1.77636e-15</p>
 <p>De nuevo la diferencia es del orden de 10 − 15 : la recursión y la
 suma infinita truncada coinciden numéricamente. ## D.3. Primera
 diferencia de una tendencia lineal</p>
@@ -3097,45 +3096,133 @@ estacionario alrededor de una recta.</p>
 <h2>D.4. Ficticias y medias estacionales</h2>
 <p>Demostrar que los coeficientes de la regresión estacional sin
 intercepto son los promedios de cada estación.</p>
-<div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — D.4</strong></p>
-<ul>
-<li>Demostración de beta_j estimado = media de la estación j:</li>
-<li>Escritura explícita de X transpuesta X y X transpuesta Y para cuatro
-estaciones y cuatro ciclos:</li>
-<li>Paso donde se usa que cada fila de X contiene exactamente un
-uno:</li>
-<li>Verificación numérica e interpretación (pendientes para otra
-sesión):</li>
-</ul>
+</div>
+<div id="d.4-demostración" class="section level1 respuesta">
+<h1>D.4 — Demostración</h1>
+<p>Sea <span class="math inline">\(X\)</span> la matriz <span class="math inline">\(n \times r\)</span> de ficticias (con <span class="math inline">\(n\)</span> ciclos completos), <span class="math inline">\(x_{tj} = 1\)</span> si la observación <span class="math inline">\(t\)</span> pertenece a la estación <span class="math inline">\(j\)</span> y <span class="math inline">\(0\)</span> en otro caso. La entrada <span class="math inline">\((j, l)\)</span> de <span class="math inline">\(X^\top X\)</span> es</p>
+<p><span class="math display">\[
+(X^\top X)_{jl} = \sum_{t=1}^{nr} x_{tj} \, x_{tl}.
+\]</span></p>
+<p>Aquí se usa que <strong>cada fila de <span class="math inline">\(X\)</span> tiene exactamente un uno</strong>: si
+<span class="math inline">\(j \ne l\)</span> no existe ningún <span class="math inline">\(t\)</span> con <span class="math inline">\(x_{tj}
+= x_{tl} = 1\)</span> (una observación no puede pertenecer a dos
+estaciones a la vez), así que <span class="math inline">\((X^\top
+X)_{jl} = 0\)</span>. Si <span class="math inline">\(j = l\)</span>,
+<span class="math inline">\(x_{tj}^2 = x_{tj}\)</span> y la suma cuenta
+cuántas observaciones caen en la estación <span class="math inline">\(j\)</span>: con <span class="math inline">\(n\)</span> ciclos completos, exactamente <span class="math inline">\(n\)</span>. Por lo tanto</p>
+<p><span class="math display">\[
+X^\top X = n \, I_r
+\qquad \Longrightarrow \qquad
+(X^\top X)^{-1} = \frac{1}{n} \, I_r
+\]</span></p>
+<p>— la <strong>ortogonalidad de las columnas</strong>, consecuencia
+directa de esa propiedad de las filas, es lo que permite invertir sin
+esfuerzo.</p>
+<p>Por otro lado, la componente <span class="math inline">\(j\)</span>
+de <span class="math inline">\(X^\top Y\)</span> es</p>
+<p><span class="math display">\[
+(X^\top Y)_j = \sum_{t} x_{tj} \, Y_t = \sum_{t \in \text{estación } j}
+Y_t.
+\]</span></p>
+<p>Combinando ambos resultados,</p>
+<p><span class="math display">\[
+\hat{\beta} = (X^\top X)^{-1} X^\top Y
+= \frac{1}{n} \left( \sum_{t \in 1} Y_t, \, \dots, \, \sum_{t \in r} Y_t
+\right)^\top
+\quad \Longrightarrow \quad
+\hat{\beta}_j = \frac{1}{n} \sum_{t \in \text{estación } j} Y_t =
+\bar{S}_j. \quad \blacksquare
+\]</span></p>
+<div id="caso-explícito-r-4-estaciones-y-n-4-ciclos" class="section level2">
+<h2>Caso explícito, <span class="math inline">\(r = 4\)</span>
+estaciones y <span class="math inline">\(n = 4\)</span> ciclos</h2>
+<p><span class="math display">\[
+X^\top X =
+\begin{pmatrix}
+4 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 4 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 4 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 4
+\end{pmatrix}
+= 4 \, I_4,
+\]</span></p>
+<p><span class="math display">\[
+X^\top Y =
+\begin{pmatrix}
+Y_1 + Y_5 + Y_9 + Y_{13} \\
+Y_2 + Y_6 + Y_{10} + Y_{14} \\
+Y_3 + Y_7 + Y_{11} + Y_{15} \\
+Y_4 + Y_8 + Y_{12} + Y_{16}
+\end{pmatrix}.
+\]</span></p>
+</div>
+<div id="dos-consecuencias-que-el-taller-viene-usando-sin-volver-a-probarlas" class="section level2">
+<h2>Dos consecuencias que el taller viene usando sin volver a
+probarlas</h2>
+<ol style="list-style-type: decimal">
+<li><p>Los coeficientes de un modelo <code>lm(y ~ q - 1)</code>
+<strong>no cambian</strong> si se elimina o añade una estación distinta:
+las columnas son ortogonales, sin colinealidad entre ellas.</p></li>
+<li><p>El modelo de “medias estacionales” del paso 4 de la Estación B
+es, literalmente, “<strong>calcule el promedio de cada mes o trimestre
+por separado</strong>” — con todas las limitaciones que eso conlleva,
+como se vio en la comparación adicional de la ruta 1.</p></li>
+</ol>
 </div>
 </div>
+<pre class="r"><code>y_q &lt;- c(1.5, 4.3, 8.9, 12.5, 1.8, 4.5, 9.0, 12.1,
+         1.2, 4.6, 8.1, 12.9, 1.9, 5.1, 8.6, 13.2)
+q &lt;- factor(rep(1:4, 4)); X &lt;- model.matrix(~ q - 1)
+rbind(lm = coef(lm(y_q ~ q - 1)), medias = tapply(y_q, q, mean))</code></pre>
+<pre><code>    q1    q2   q3     q4</code></pre>
+<p>lm 1.6 4.625 8.65 12.675 medias 1.6 4.625 8.65 12.675</p>
+<pre class="r"><code>crossprod(X)</code></pre>
+<p>q1 q2 q3 q4 q1 4 0 0 0 q2 0 4 0 0 q3 0 0 4 0 q4 0 0 0 4</p>
+<pre class="r"><code>rbind(`X&#39;Y` = as.vector(crossprod(X, y_q)), `sumas por estación` = tapply(y_q, q, sum))</code></pre>
+<pre><code>                 1    2    3    4</code></pre>
+<p>X’Y 6.4 18.5 34.6 50.7 sumas por estación 6.4 18.5 34.6 50.7</p>
 <div id="cierre-autoevaluación" class="section level1">
 <h1>6. Cierre: autoevaluación</h1>
-<div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — Autoevaluación</strong></p>
-<ul>
-<li><ol style="list-style-type: decimal">
-<li>¿Qué distingue en el correlograma una serie de tipo II de una de
-tipo IV?:</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
-<li>¿Por qué el MSE dentro de muestra no sirve para elegir entre modelos
-anidados?:</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
-<li>¿Cuál es la línea de evaluar_ruta() que impide la fuga de
-información?:</li>
-</ol></li>
-<li><ol start="4" style="list-style-type: decimal">
-<li>¿Por qué una serie puede ser estacionaria en media sin que sus
-incrementos sean ruido blanco?:</li>
-</ol></li>
-<li><ol start="5" style="list-style-type: decimal">
-<li>¿Qué se reporta junto con un pronóstico, además del número?:</li>
-</ol></li>
-</ul>
 </div>
+<div id="preguntas-de-cierre-conceptual" class="section level1 respuesta">
+<h1>Preguntas de cierre conceptual</h1>
+<p><strong>¿Qué distingue en el correlograma una serie de tipo II de una
+de tipo IV?</strong></p>
+<p>En la de tipo II los picos en <span class="math inline">\(s, 2s, 3s,
+\dots\)</span> se mantienen sin decaer y los rezagos intermedios son
+negativos y simétricos (oscila alrededor de cero); en la de tipo IV esos
+mismos picos aparecen montados sobre un decaimiento lento positivo y los
+valles intermedios no bajan de cero. Ejemplos: <code>nottem</code> con
+<span class="math inline">\(r_6 = -0{,}88\)</span> (tipo II puro),
+<code>UKgas</code> con <span class="math inline">\(r_6 = 0{,}13\)</span>
+(tipo IV con pedestal positivo).</p>
+<p><strong>¿Por qué el MSE dentro de muestra no sirve para elegir entre
+modelos anidados?</strong></p>
+<p>Porque la suma de cuadrados residual <strong>nunca sube</strong> al
+añadir regresores: el modelo grande siempre gana, aunque el parámetro
+extra solo esté ajustando ruido. Elegir por MSE dentro de muestra es
+elegir siempre el modelo más grande. Hace falta o una prueba que
+penalice el parámetro (la <span class="math inline">\(F\)</span> del
+paso 8) o una evaluación fuera de muestra (el origen móvil).</p>
+<p><strong>¿Cuál es la única línea de <code>origen_movil()</code> que
+impide la fuga de información?</strong></p>
+<pre class="r"><code>res[i, j] &lt;- metodos[[j]](y[1:o], h)</code></pre>
+<p>El corte <code>y[1:o]</code>, que entrega al método únicamente el
+pasado de su propio origen. Y solo protege si <strong>todo</strong>
+—parámetros incluidos— se estima dentro de esa llamada; el bloque 1 de
+la auditoría es precisamente una fuga que esquiva esta línea.</p>
+<p><strong>¿Por qué una serie puede ser estacionaria en media sin que
+sus incrementos sean ruido blanco?</strong></p>
+<p>Porque la estacionariedad en media solo exige que <span class="math inline">\(\mathbb{E}(Z_t)\)</span> no dependa de <span class="math inline">\(t\)</span>, mientras que el ruido blanco exige
+además incorrelación a todos los rezagos. En D.3, <span class="math inline">\(Z_t = \beta_1 + u_t\)</span> tiene media constante
+<span class="math inline">\(\beta_1\)</span> pero <span class="math inline">\(\rho_u(1) = -1/2\)</span>.</p>
+<p><strong>¿Qué se reporta junto con un pronóstico, además del
+número?</strong></p>
+<p>Una medida de incertidumbre (banda o intervalo) con su naturaleza
+declarada —heurística o probabilística—, el horizonte y el origen a los
+que corresponde, el método usado y su desempeño frente a un referente
+ingenuo sobre los mismos orígenes, y una interpretación en las unidades
+del problema para quien va a tomar la decisión.</p>
 </div>
 <div id="referencias-de-implementación" class="section level1">
 <h1>Referencias de implementación</h1>
