@@ -562,12 +562,11 @@ mostrar_tabla(data.frame(Correlacion = cor(resumen_anual$Nivel,
                                           resumen_anual$Amplitud)))
 ```
 
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, escala**
 
--   Decisión: aditiva o multiplicativa:
--   Justificación apoyada en el gráfico y la correlación:
-:::
+
+- Decisión: La escala de la ruta 2 es multiplicativa.
+- Justificación: La amplitud estacional aumenta con el nivel medio y su correlación es positiva y muy alta (0,99).
+
 
 ## Paso 2. Correlograma y prueba
 
@@ -627,7 +626,6 @@ La simetría casi perfecta de `nottem` alrededor de cero es la firma del **tipo 
 
 :::
 
-### Ruta 2. Consumo trimestral de gas del Reino Unido
 
 ```{r r2-paso2}
 # Se recuperan los datos de la ruta 2 para avanzar en paralelo por pasos.
@@ -648,10 +646,37 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 2, paso 2**
 
--   Hipótesis, significancia y regla de decisión:
--   Interpretación de Ljung–Box:
--   ¿Los picos en múltiplos de s decaen o se mantienen?:
--   ¿Qué distingue a los tipos II y IV?:
+#### Ljung–Box con 16 rezagos
+
+#### Hipótesis, significancia y regla
+
+$H_0:$ `UKgas` es ruido blanco hasta el rezago $m = 16$, contra $H_1:$ existe autocorrelación en al menos uno de los primeros 16 rezagos. Con $\alpha = 0{,}05$ se rechaza $H_0$ si
+
+$$
+Q > \chi^2_{16;\,0{,}95} = 26{,}30
+$$
+
+o si el valor $p < 0{,}05$.
+
+#### Interpretación de Ljung–Box
+
+Como $Q = 503{,}3$ y el valor\_p $< 10^{-12}$, se rechaza $H_0$ con amplio margen. Por tanto, la serie presenta una fuerte dependencia temporal y no se comporta como ruido blanco.
+
+#### ¿Decaen o se mantienen los picos?
+
+Los picos estacionales decaen gradualmente, aunque permanecen elevados:
+
+$$
+r_4 = 0{,}902,\quad r_8 = 0{,}806,\quad r_{12} = 0{,}720,\quad r_{16} = 0{,}633.
+$$
+
+#### ¿Qué distingue tipo II de tipo IV?
+
+- En el **tipo II**, la ACF oscila alrededor de cero debido a la estacionalidad, con picos positivos en los múltiplos de $s$ y valores negativos entre ellos.
+
+- En el **tipo IV**, la tendencia mantiene las autocorrelaciones positivas y produce un decaimiento lento, sobre el cual aparecen los picos estacionales.
+
+Como `UKgas` presenta autocorrelaciones positivas que disminuyen lentamente y picos trimestrales persistentes, corresponde al **tipo IV**.
 :::
 
 ## Paso 3. Partir la muestra
@@ -675,11 +700,6 @@ mostrar_tabla(data.frame(
 ))
 ```
 
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 3**
-
--   Descripción y justificación del esquema de evaluación:
-:::
 
 ### Ruta 2. Consumo trimestral de gas del Reino Unido
 
@@ -700,11 +720,7 @@ mostrar_tabla(data.frame(
 ))
 ```
 
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 2, paso 3**
 
--   Descripción y justificación del esquema de evaluación:
-:::
 
 ## Paso 4. Ajustar candidatos en cada origen
 
