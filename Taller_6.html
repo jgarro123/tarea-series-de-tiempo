@@ -2381,24 +2381,10 @@ mostrar_tabla(data.frame(
 </tr>
 </tbody>
 </table>
-<div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — Ruta 1, paso 8</strong></p>
-<ul>
-<li>Hipótesis nula y alternativa:</li>
-<li>Significancia y regla de decisión:</li>
-<li>Conclusión estadística:</li>
-<li>Interpretación de la magnitud en grados Fahrenheit por década:</li>
-<li>¿La prueba y la magnitud del efecto apuntan en la misma
-dirección?:</li>
-</ul>
-</div>
 </div>
 </div>
 <div id="estación-c.-auditoría" class="section level1">
 <h1>4. Estación C. Auditoría</h1>
-<p>Los siguientes fragmentos son los ejemplos que deben auditarse. Se
-muestran sin ejecutar porque utilizan funciones y datos propios del
-curso. Sus defectos se dejan para el análisis de los autores.</p>
 <div id="c.1.-bloque-1" class="section level2">
 <h2>C.1. Bloque 1</h2>
 <pre class="r"><code>y &lt;- creditos_consumo
@@ -2485,126 +2471,70 @@ mostrar_tabla(evaluaciones$ruta2$tabla)</code></pre>
 </table>
 </div>
 </div>
-<div id="auditoría-de-bloques-problemáticos" class="section level1">
-<h1>Auditoría de bloques problemáticos</h1>
-<p>La siguiente tabla sistematiza los cuatro bloques con defectos
-metodológicos identificados en el taller, el efecto que cada uno tiene
-sobre los resultados y la corrección que debe aplicarse.</p>
+<div id="auditoría-de-bloques-problemáticos-versión-resumida" class="section level1">
+<h1>Auditoría de bloques problemáticos — versión resumida</h1>
 <table>
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
+<col width="14%" />
+<col width="35%" />
+<col width="15%" />
+<col width="14%" />
+<col width="21%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">Bloque</th>
-<th align="left">Línea o afirmación problemática</th>
-<th align="left">Defecto identificado</th>
-<th align="left">Efecto en el resultado</th>
-<th align="left">¿Qué se debe cambiar o reportar?</th>
+<th align="center">Bloque</th>
+<th align="left">Línea problemática</th>
+<th align="left">Defecto</th>
+<th align="left">Efecto</th>
+<th align="left">Corrección</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">1</td>
-<td align="left"><code>p &lt;- optimizar_holt(y, 0.05)</code>, que
-recibe <code>y</code> completa antes de entrar al bucle de orígenes</td>
-<td align="left"><strong>Fuga de información en los parámetros.</strong>
-El corte <code>y[1:o]</code> dentro de <code>origen_movil()</code>
-protege los datos, pero <span class="math inline">\(\alpha\)</span> y
-<span class="math inline">\(\beta\)</span> se optimizaron mirando toda
-la serie, incluidos los tramos posteriores a cada origen. En el origen
-20 el método ya “sabe”, a través de esas constantes, cómo se comportó la
-serie hasta el dato 40.</td>
-<td align="left">El RMSE reportado es <strong>optimista</strong>: mejor
-que el que Holt lograría en producción, donde <span class="math inline">\(\alpha\)</span> y <span class="math inline">\(\beta\)</span> tendrían que fijarse solo con el
-pasado disponible en cada momento. El sesgo crece cuanto más cambia la
-dinámica de la serie entre el tramo de calibración y el de
-evaluación.</td>
+<td align="center">1</td>
+<td align="left"><code>p &lt;- optimizar_holt(y, 0.05)</code> con
+<code>y</code> completa</td>
+<td align="left"><strong>Fuga de información</strong>: <span class="math inline">\(\alpha, \beta\)</span> se calibran con toda la
+serie, no solo con el pasado de cada origen.</td>
+<td align="left">RMSE optimista, mejor que en producción.</td>
 <td align="left">Optimizar <span class="math inline">\(\alpha,
-\beta\)</span> <strong>dentro</strong> de la función del método,
-recibiendo únicamente <code>yy = y[1:o]</code>, de modo que se reestimen
-en cada uno de los orígenes 20 a 40, igual que se reestiman
-<code>lm()</code> y <code>HoltWinters()</code> en este mismo
-taller.</td>
+\beta\)</span> <strong>dentro</strong> de la función, con
+<code>yy = y[1:o]</code>.</td>
 </tr>
 <tr class="even">
-<td align="left">2</td>
-<td align="left"><code>rbind(MM(4) = medidas(b, ajustar_mm(b, 4)$yhat), ...)</code></td>
-<td align="left"><strong>Comparación entre objetos no
-comparables</strong>, con dos problemas en la misma línea: (i) <span class="math inline">\(MM_t(4) = \tfrac{1}{4}(Y_t + Y_{t-1} + Y_{t-2} +
-Y_{t-3})\)</span> incluye <span class="math inline">\(Y_t\)</span>, así
-que no es un pronóstico de <span class="math inline">\(Y_t\)</span> sino
-un resumen que ya lo vio, mientras que el SES sí usa solo información
-hasta <span class="math inline">\(t-1\)</span>; (ii)
-<code>medidas()</code> promedia sobre los índices donde cada
-<code>yhat</code> no es <code>NA</code>, y <code>MM(4)</code> empieza en
-<span class="math inline">\(t = 4\)</span> mientras que SES empieza en
-<span class="math inline">\(t = 2\)</span>: se comparan <strong>ventanas
-distintas</strong>. Además falta el ingenuo como referente.</td>
-<td align="left">La media móvil aparece con <strong>ventaja
-artificial</strong>: se está comparando un <em>ajuste</em> (MM, que ve
-el dato que evalúa) contra un <em>pronóstico</em> (SES), sobre conjuntos
-de datos distintos, y sin saber si alguno de los dos le gana siquiera al
-ingenuo.</td>
-<td align="left">Rezagar la media móvil un período antes de compararla
-(<span class="math inline">\(\hat{Y}_t = MM_{t-1}(4)\)</span>),
-restringir ambos métodos a la <strong>misma ventana</strong> de índices,
-y agregar el <strong>ingenuo</strong> como una fila más de la misma
-tabla.</td>
+<td align="center">2</td>
+<td align="left"><code>medidas(b, ajustar_mm(b, 4)$yhat)</code></td>
+<td align="left"><span class="math inline">\(MM_t(4)\)</span> incluye
+<span class="math inline">\(Y_t\)</span> (no es pronóstico); además
+compara <strong>ventanas distintas</strong> y sin el ingenuo.</td>
+<td align="left">MM(4) parece ganar, pero se compara un <em>ajuste</em>
+contra un <em>pronóstico</em>.</td>
+<td align="left"><strong>Rezagar</strong> la MM un período, igualar
+ventanas y añadir el <strong>ingenuo</strong>.</td>
 </tr>
 <tr class="odd">
-<td align="left">3</td>
-<td align="left"><code>ljung_box(acf_muestral(en, 24), T = 240)</code> —
-llamada sin el argumento de grados de libertad descontados</td>
-<td align="left"><strong>Grados de libertad incorrectos.</strong>
-<code>lm(yn ~ qn - 1)</code> estima 12 coeficientes, así que <span class="math inline">\(Q\)</span> debe compararse contra <span class="math inline">\(\chi^2_{24-12} = \chi^2_{12}\)</span>, no contra
-<span class="math inline">\(\chi^2_{24}\)</span>.</td>
-<td align="left">Usar 24 grados de libertad en vez de 12 corre el valor
-crítico hacia arriba (36,4 en vez de 21,0) e <strong>infla
-artificialmente el valor <span class="math inline">\(p\)</span></strong>, haciendo la prueba
-conservadora: aquí, de hecho, el <code>valor_p</code> correcto con
-<code>fitdf = 12</code> (visible en la comparación adicional de la ruta
-1: <span class="math inline">\(p = 6{,}9 \times 10^{-6}\)</span>) es
-casi seis órdenes de magnitud menor que el que resultaría de dejar
-<code>fitdf = 0</code>. La conclusión de “rechazo” sobrevive en este
-caso porque <span class="math inline">\(Q\)</span> es grande, pero en un
-caso límite el error de grados de libertad podría cambiar la
-decisión.</td>
-<td align="left">Pasar siempre <code>fitdf</code> igual al número de
-parámetros estimados en el modelo cuyos residuos se están probando —
-aquí, <code>fitdf = 12</code> — y reportar el <code>valor_p</code>
-correcto, no el más cómodo.</td>
+<td align="center">3</td>
+<td align="left"><code>ljung_box(acf_muestral(en, 24), T = 240)</code>
+sin <code>p</code></td>
+<td align="left">Faltan los <strong>12 grados de libertad</strong> del
+modelo estimado.</td>
+<td align="left">Valor <span class="math inline">\(p\)</span> inflado
+(usa <span class="math inline">\(\chi^2_{24}\)</span> en vez de <span class="math inline">\(\chi^2_{12}\)</span>).</td>
+<td align="left">Usar <code>p = 12</code> (número de parámetros
+estimados).</td>
 </tr>
 <tr class="even">
-<td align="left">4</td>
-<td align="left">La afirmación “el método gana: su MASE es menor que
-uno”, con el denominador del ingenuo calculado sobre
-<code>y[1:min(origenes)]</code> en vez de sobre los mismos orígenes
-80:107</td>
-<td align="left"><strong>Denominador de otro tramo de la serie</strong>,
-exactamente el error que advierte el paso 5: el numerador se mide sobre
-los trimestres 81–108 y el denominador sobre los trimestres 1–80, que en
-<code>UKgas</code> son prácticamente otra serie — el nivel medio de
-81–108 es varias veces el de 1–80, y la amplitud estacional crece en la
-misma proporción (paso 1 de la ruta 2, correlación nivel-amplitud <span class="math inline">\(= 0{,}99\)</span>).</td>
-<td align="left">El MASE de 0,92 <strong>no mide qué tan bueno es el
-método</strong>: mezcla la calidad del método con el hecho de que la
-serie creció mucho entre los dos tramos, y el error absoluto del ingenuo
-en unidades de los años sesenta es mucho menor que en unidades de los
-años ochenta, aunque proporcionalmente el ingenuo se equivoque parecido
-en ambas épocas.</td>
-<td align="left">Reportar el MASE con el ingenuo estacional calculado
-sobre <strong>los mismos 28 orígenes</strong> (80 a 107) del método que
-se evalúa, como una fila más de la tabla de la ruta 2 (paso 5) — con
-eso, la comparación entre HW aditivo y el ingenuo da una razón de MAD de
-<span class="math inline">\(37{,}23 / 39{,}96 = 0{,}932\)</span>, una
-ventaja real pero bastante más modesta que la que sugiere el cálculo con
-el denominador equivocado, y acompañada de RMSE y MAPE para una lectura
-completa.</td>
+<td align="center">4</td>
+<td align="left">MASE <span class="math inline">\(= 0{,}92\)</span> con
+denominador de <code>y[1:80]</code></td>
+<td align="left">Numerador y denominador de <strong>tramos
+distintos</strong> de una serie que se multiplica por <span class="math inline">\(\approx 6\)</span>.</td>
+<td align="left">Razón sin sentido: mezcla calidad del método con
+crecimiento de la serie.</td>
+<td align="left">Ingenuo calculado sobre los <strong>mismos orígenes
+80:107</strong> (da MAD <span class="math inline">\(=
+0{,}93\)</span>).</td>
 </tr>
 </tbody>
 </table>
