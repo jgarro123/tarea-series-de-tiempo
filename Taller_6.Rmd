@@ -396,30 +396,14 @@ mostrar_tabla(tabla_A_ljung)
 
 ## A.3. Tabla de decisión
 
-Con base en los correlogramas, los gráficos de las series y las autocorrelaciones muestrales ($r_1$, $r_s$, $r_{2s}$) reportadas en la tabla `tabla_A` del taller, se completa la siguiente tabla de decisión:
+## A.3. Tabla de decisión
 
 | Serie | Patrón | Evidencia del correlograma | Familia de técnicas |
 |:--|:--|:--|:--|
-| Nivel del lago Hurón | **Tendencia (Tipo III)** | Decaimiento lento y monótono sin picos estacionales ($s=1$). $r_1 = 0.83$ muy alto. | Suavizamiento exponencial (Holt), ARIMA no estacional, regresión con tendencia. |
-| Temperatura en Nottingham | **Estacionalidad pura (Tipo II)** | Picos claros en múltiplos de $12$ ($s=12$) que no decaen. $r_{s} = 0.88$ muy alto. | Modelos estacionales (SARIMA, Holt-Winters estacional), descomposición. |
-| Población de Australia | **Tendencia (Tipo III)** | Decaimiento lento y persistente. $r_1 = 0.97$ extremadamente alto, indicando fuerte inercia. | Suavizamiento exponencial (Holt), ARIMA con diferenciación, regresión con tendencia. |
-| Muertes accidentales | **Tendencia + Estacionalidad (Tipo IV)** | Decaimiento lento combinado con picos estacionales en múltiplos de $12$. $r_1 = 0.71$ y $r_{s} = 0.63$. | SARIMA, Holt-Winters (tendencia + estacionalidad), descomposición STL. |
-
-### Notas de interpretación
-
-- **Nivel del lago Hurón (Tipo III).** Aunque la serie es anual ($s=1$), el correlograma muestra un decaimiento lento típico de una serie con persistencia de nivel o memoria larga. La banda de Bartlett se ensancha, pero los primeros $r_k$ permanecen fuera de ella. Esto descarta el escenario de ruido blanco (Tipo I) y descarta también estacionalidad (no hay picos periódicos).
-
-- **Temperatura en Nottingham (Tipo II).** Es el ejemplo canónico de estacionalidad pura. No hay tendencia a largo plazo, pero la dependencia con la época del año es muy fuerte: $r_{12} = 0.88$ prácticamente igual a $r_1 = 0.81$. Los picos estacionales no decaen, lo que confirma que el ciclo anual domina la dinámica.
-
-- **Población de Australia (Tipo III).** Su $r_1 = 0.97$ es el más alto de las cuatro series, señal de una tendencia muy suave y sostenida (fuerte inercia). Aunque la frecuencia es trimestral ($s=4$), no se observan picos estacionales marcados en los rezagos $4, 8, 12, \dots$ que superen la banda.
-
-- **Muertes accidentales (Tipo IV).** Combina tendencia y estacionalidad. El decaimiento inicial lento ($r_1 = 0.71$) indica memoria/tendencia, y el pico en $r_{12} = 0.63$ confirma el ciclo anual (mayor número de muertes en verano en EE. UU.). Es el caso más rico de los cuatro y por eso requiere modelos tipo SARIMA u Holt-Winters estacional.
-
-### Conexión con la prueba Ljung-Box (A.2)
-
-Los cuatro valores de $Q$ de la prueba Ljung-Box con $m=24$ rezagos (203, 2342, 953 y 237) superan ampliamente el valor crítico $\chi^2_{24;\,0.95} = 36.42$. Esto es coherente con lo que se observa en los correlogramas: **ninguna de las cuatro series es ruido blanco**. La prueba, sin embargo, no distingue entre tendencia, estacionalidad o ambos — solo confirma la presencia de estructura. Esa distinción es justamente la que hace esta tabla de decisión con base en la forma del correlograma.
-
-
+| Nivel del lago Hurón | Tipo I (nivel, sin tendencia ni estacionalidad) | $r_1 = 0{,}832$ alto pero $r_2 = 0{,}610$ ya menor: decaimiento sin picos periódicos (la serie es anual, $s = 1$, así que no hay período estacional que buscar) | Métodos de nivel: media móvil, suavizamiento exponencial simple |
+| Temperatura en Nottingham | Tipo II (estacional, sin tendencia) | $r_{12} = 0{,}884 \approx r_{24} = 0{,}866$: los picos no decaen; oscilación regular de período 12 | Medias estacionales (ficticias sin intercepto), Holt--Winters aditivo |
+| Población de Australia | Tipo III (tendencia, sin estacionalidad) | $r_1 = 0{,}967$ con descenso lento y monótono; sin realce en $k = 4, 8, 12$ frente a sus vecinos | Tendencia (determinística o Holt de dos parámetros) |
+| Muertes accidentales | Tipo IV (tendencia y estacionalidad) | $r_{12} = 0{,}629$ nítidamente por encima de $r_1 = 0{,}708$ decayendo; picos estacionales sobre un nivel que además se desliza | Ficticias con tendencia, Holt--Winters (aditivo o multiplicativo) |
 
 ## A.4 — Dos decaimientos lentos, dos causas
 
@@ -489,13 +473,15 @@ plot(serie, main = "Temperatura en Nottingham",
      xlab = "Año", ylab = "Temperatura (°F)")
 ```
 
+## Componentes de la serie (Temperatura en Nottingham)
+
 | Componente | ¿Se observa? | Evidencia |
 |:--|:--|:--|
-| Nivel | [Completar] | [Completar] |
-| Tendencia | [Completar] | [Completar] |
-| Estacionalidad | [Completar] | [Completar] |
-| Ciclo | [Completar] | [Completar] |
-| Episodios atípicos | [Completar] | [Completar] |
+| Nivel | Sí | Oscila alrededor de 49 °F de forma estable durante los veinte años. |
+| Tendencia | No a simple vista | La serie no muestra una deriva visible; el paso 8 la contrasta formalmente y encuentra un efecto real pero minúsculo frente a la estacionalidad. |
+| Estacionalidad | Sí, dominante | Ciclo anual muy regular, de unos 23 °F entre el mes más frío y el más cálido, repetido con la misma forma cada doce meses. |
+| Ciclo | No | No hay oscilaciones plurianuales de período variable superpuestas al ciclo anual. |
+| Episodios atípicos | Prácticamente ninguno | Algún invierno algo más suave o verano algo más fresco, pero dentro del rango habitual; no se aprecian quiebres ni valores extremos aislados. |
 
 ### Paso 2. Correlograma y prueba
 
