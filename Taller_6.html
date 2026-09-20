@@ -557,20 +557,48 @@ Estación C. Auditoría</a>
 <li><a href="#c.4.-bloque-4" id="toc-c.4.-bloque-4">C.4. Bloque
 4</a></li>
 </ul></li>
-<li><a href="#auditoría-de-bloques-problemáticos-versión-resumida" id="toc-auditoría-de-bloques-problemáticos-versión-resumida">Auditoría
-de bloques problemáticos — versión resumida</a></li>
+<li><a href="#auditoría-de-bloques-problemáticos" id="toc-auditoría-de-bloques-problemáticos">Auditoría de bloques
+problemáticos</a></li>
 <li><a href="#estación-d.-cuatro-demostraciones" id="toc-estación-d.-cuatro-demostraciones">5. Estación D. Cuatro
 demostraciones</a>
 <ul>
 <li><a href="#d.1.-actualización-de-la-media-móvil" id="toc-d.1.-actualización-de-la-media-móvil">D.1. Actualización de la
 media móvil</a></li>
+</ul></li>
+<li><a href="#d.1-demostración" id="toc-d.1-demostración">D.1 —
+Demostración</a>
+<ul>
+<li><a href="#costo-de-actualizar-frente-a-recalcular" id="toc-costo-de-actualizar-frente-a-recalcular">Costo de actualizar
+frente a recalcular</a></li>
+</ul></li>
 <li><a href="#d.2.-recursión-del-suavizamiento-exponencial" id="toc-d.2.-recursión-del-suavizamiento-exponencial">D.2. Recursión del
 suavizamiento exponencial</a></li>
+<li><a href="#d.2-demostración" id="toc-d.2-demostración">D.2 —
+Demostración</a>
+<ul>
+<li><a href="#valores-a-guardar-y-operaciones" id="toc-valores-a-guardar-y-operaciones">Valores a guardar y
+operaciones</a></li>
+</ul></li>
+<li><a href="#d.3-demostración" id="toc-d.3-demostración">D.3 —
+Demostración</a>
+<ul>
+<li><a href="#a-diferenciar-una-tendencia-lineal-elimina-el-nivel-y-convierte-la-pendiente-en-la-media" id="toc-a-diferenciar-una-tendencia-lineal-elimina-el-nivel-y-convierte-la-pendiente-en-la-media">a)
+Diferenciar una tendencia lineal elimina el nivel y convierte la
+pendiente en la media</a></li>
+<li><a href="#b-la-diferencia-de-ruido-blanco-es-una-ma1-con-theta--1" id="toc-b-la-diferencia-de-ruido-blanco-es-una-ma1-con-theta--1">b) La
+diferencia de ruido blanco es una MA(1) con <span class="math inline">\(\theta = -1\)</span></a></li>
+<li><a href="#c-u_t-no-es-ruido-blanco-la-firma-de-la-sobrediferenciación" id="toc-c-u_t-no-es-ruido-blanco-la-firma-de-la-sobrediferenciación">c)
+<span class="math inline">\(\{u_t\}\)</span> no es ruido blanco: la
+firma de la sobrediferenciación</a></li>
+<li><a href="#estacionariedad-en-media-sin-ruido-blanco-sí." id="toc-estacionariedad-en-media-sin-ruido-blanco-sí.">¿Estacionariedad
+en media sin ruido blanco? Sí.</a></li>
+</ul></li>
 <li><a href="#d.4.-ficticias-y-medias-estacionales" id="toc-d.4.-ficticias-y-medias-estacionales">D.4. Ficticias y medias
 estacionales</a></li>
-</ul></li>
 <li><a href="#cierre-autoevaluación" id="toc-cierre-autoevaluación">6.
 Cierre: autoevaluación</a></li>
+<li><a href="#preguntas-de-cierre-conceptual" id="toc-preguntas-de-cierre-conceptual">Preguntas de cierre
+conceptual</a></li>
 <li><a href="#referencias-de-implementación" id="toc-referencias-de-implementación">Referencias de
 implementación</a></li>
 </ul>
@@ -2761,11 +2789,32 @@ mostrar_tabla(data.frame(
 </tr>
 </tbody>
 </table>
+<div class="respuesta">
+<p><strong>Ruta 1, paso 8</strong></p>
+<ul>
+<li><strong>Hipótesis:</strong> <span class="math inline">\(H_0\)</span>
+establece que la pendiente temporal es cero, es decir, que al controlar
+la estacionalidad no existe tendencia. <span class="math inline">\(H_1\)</span> establece que la pendiente es
+distinta de cero.</li>
+<li><strong>Significancia y regla:</strong> Con <span class="math inline">\(\alpha=0{,}05\)</span>, se rechaza <span class="math inline">\(H_0\)</span> cuando el valor <span class="math inline">\(p\)</span> es menor que 0,05.</li>
+<li><strong>Conclusión estadística:</strong> Como <span class="math inline">\(F=4{,}9374\)</span> y <span class="math inline">\(p=0{,}0273&lt;0{,}05\)</span>, se rechaza <span class="math inline">\(H_0\)</span>. Hay evidencia estadística de una
+tendencia temporal en la temperatura de Nottingham después de controlar
+el mes del año.</li>
+<li><strong>Magnitud:</strong> La pendiente estimada equivale a un
+aumento de <strong>0,5709 grados Fahrenheit por década</strong>.</li>
+<li><strong>Dirección conjunta:</strong> Sí. La prueba detecta una
+tendencia significativa y la pendiente positiva indica que esa tendencia
+es de aumento.</li>
+</ul>
+</div>
 </div>
 </div>
 </div>
 <div id="estación-c.-auditoría" class="section level1">
 <h1>4. Estación C. Auditoría</h1>
+<p>Los siguientes fragmentos son los ejemplos que deben auditarse. Se
+muestran sin ejecutar porque utilizan funciones y datos propios del
+curso. Sus defectos se dejan para el análisis de los autores.</p>
 <div id="c.1.-bloque-1" class="section level2">
 <h2>C.1. Bloque 1</h2>
 <pre class="r"><code>y &lt;- creditos_consumo
@@ -2852,70 +2901,126 @@ mostrar_tabla(evaluaciones$ruta2$tabla)</code></pre>
 </table>
 </div>
 </div>
-<div id="auditoría-de-bloques-problemáticos-versión-resumida" class="section level1">
-<h1>Auditoría de bloques problemáticos — versión resumida</h1>
+<div id="auditoría-de-bloques-problemáticos" class="section level1">
+<h1>Auditoría de bloques problemáticos</h1>
+<p>La siguiente tabla sistematiza los cuatro bloques con defectos
+metodológicos identificados en el taller, el efecto que cada uno tiene
+sobre los resultados y la corrección que debe aplicarse.</p>
 <table>
 <colgroup>
-<col width="14%" />
-<col width="35%" />
-<col width="15%" />
-<col width="14%" />
-<col width="21%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="center">Bloque</th>
-<th align="left">Línea problemática</th>
-<th align="left">Defecto</th>
-<th align="left">Efecto</th>
-<th align="left">Corrección</th>
+<th align="left">Bloque</th>
+<th align="left">Línea o afirmación problemática</th>
+<th align="left">Defecto identificado</th>
+<th align="left">Efecto en el resultado</th>
+<th align="left">¿Qué se debe cambiar o reportar?</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">1</td>
-<td align="left"><code>p &lt;- optimizar_holt(y, 0.05)</code> con
-<code>y</code> completa</td>
-<td align="left"><strong>Fuga de información</strong>: <span class="math inline">\(\alpha, \beta\)</span> se calibran con toda la
-serie, no solo con el pasado de cada origen.</td>
-<td align="left">RMSE optimista, mejor que en producción.</td>
+<td align="left">1</td>
+<td align="left"><code>p &lt;- optimizar_holt(y, 0.05)</code>, que
+recibe <code>y</code> completa antes de entrar al bucle de orígenes</td>
+<td align="left"><strong>Fuga de información en los parámetros.</strong>
+El corte <code>y[1:o]</code> dentro de <code>origen_movil()</code>
+protege los datos, pero <span class="math inline">\(\alpha\)</span> y
+<span class="math inline">\(\beta\)</span> se optimizaron mirando toda
+la serie, incluidos los tramos posteriores a cada origen. En el origen
+20 el método ya “sabe”, a través de esas constantes, cómo se comportó la
+serie hasta el dato 40.</td>
+<td align="left">El RMSE reportado es <strong>optimista</strong>: mejor
+que el que Holt lograría en producción, donde <span class="math inline">\(\alpha\)</span> y <span class="math inline">\(\beta\)</span> tendrían que fijarse solo con el
+pasado disponible en cada momento. El sesgo crece cuanto más cambia la
+dinámica de la serie entre el tramo de calibración y el de
+evaluación.</td>
 <td align="left">Optimizar <span class="math inline">\(\alpha,
-\beta\)</span> <strong>dentro</strong> de la función, con
-<code>yy = y[1:o]</code>.</td>
+\beta\)</span> <strong>dentro</strong> de la función del método,
+recibiendo únicamente <code>yy = y[1:o]</code>, de modo que se reestimen
+en cada uno de los orígenes 20 a 40, igual que se reestiman
+<code>lm()</code> y <code>HoltWinters()</code> en este mismo
+taller.</td>
 </tr>
 <tr class="even">
-<td align="center">2</td>
-<td align="left"><code>medidas(b, ajustar_mm(b, 4)$yhat)</code></td>
-<td align="left"><span class="math inline">\(MM_t(4)\)</span> incluye
-<span class="math inline">\(Y_t\)</span> (no es pronóstico); además
-compara <strong>ventanas distintas</strong> y sin el ingenuo.</td>
-<td align="left">MM(4) parece ganar, pero se compara un <em>ajuste</em>
-contra un <em>pronóstico</em>.</td>
-<td align="left"><strong>Rezagar</strong> la MM un período, igualar
-ventanas y añadir el <strong>ingenuo</strong>.</td>
+<td align="left">2</td>
+<td align="left"><code>rbind(MM(4) = medidas(b, ajustar_mm(b, 4)$yhat), ...)</code></td>
+<td align="left"><strong>Comparación entre objetos no
+comparables</strong>, con dos problemas en la misma línea: (i) <span class="math inline">\(MM_t(4) = \tfrac{1}{4}(Y_t + Y_{t-1} + Y_{t-2} +
+Y_{t-3})\)</span> incluye <span class="math inline">\(Y_t\)</span>, así
+que no es un pronóstico de <span class="math inline">\(Y_t\)</span> sino
+un resumen que ya lo vio, mientras que el SES sí usa solo información
+hasta <span class="math inline">\(t-1\)</span>; (ii)
+<code>medidas()</code> promedia sobre los índices donde cada
+<code>yhat</code> no es <code>NA</code>, y <code>MM(4)</code> empieza en
+<span class="math inline">\(t = 4\)</span> mientras que SES empieza en
+<span class="math inline">\(t = 2\)</span>: se comparan <strong>ventanas
+distintas</strong>. Además falta el ingenuo como referente.</td>
+<td align="left">La media móvil aparece con <strong>ventaja
+artificial</strong>: se está comparando un <em>ajuste</em> (MM, que ve
+el dato que evalúa) contra un <em>pronóstico</em> (SES), sobre conjuntos
+de datos distintos, y sin saber si alguno de los dos le gana siquiera al
+ingenuo.</td>
+<td align="left">Rezagar la media móvil un período antes de compararla
+(<span class="math inline">\(\hat{Y}_t = MM_{t-1}(4)\)</span>),
+restringir ambos métodos a la <strong>misma ventana</strong> de índices,
+y agregar el <strong>ingenuo</strong> como una fila más de la misma
+tabla.</td>
 </tr>
 <tr class="odd">
-<td align="center">3</td>
-<td align="left"><code>ljung_box(acf_muestral(en, 24), T = 240)</code>
-sin <code>p</code></td>
-<td align="left">Faltan los <strong>12 grados de libertad</strong> del
-modelo estimado.</td>
-<td align="left">Valor <span class="math inline">\(p\)</span> inflado
-(usa <span class="math inline">\(\chi^2_{24}\)</span> en vez de <span class="math inline">\(\chi^2_{12}\)</span>).</td>
-<td align="left">Usar <code>p = 12</code> (número de parámetros
-estimados).</td>
+<td align="left">3</td>
+<td align="left"><code>ljung_box(acf_muestral(en, 24), T = 240)</code> —
+llamada sin el argumento de grados de libertad descontados</td>
+<td align="left"><strong>Grados de libertad incorrectos.</strong>
+<code>lm(yn ~ qn - 1)</code> estima 12 coeficientes, así que <span class="math inline">\(Q\)</span> debe compararse contra <span class="math inline">\(\chi^2_{24-12} = \chi^2_{12}\)</span>, no contra
+<span class="math inline">\(\chi^2_{24}\)</span>.</td>
+<td align="left">Usar 24 grados de libertad en vez de 12 corre el valor
+crítico hacia arriba (36,4 en vez de 21,0) e <strong>infla
+artificialmente el valor <span class="math inline">\(p\)</span></strong>, haciendo la prueba
+conservadora: aquí, de hecho, el <code>valor_p</code> correcto con
+<code>fitdf = 12</code> (visible en la comparación adicional de la ruta
+1: <span class="math inline">\(p = 6{,}9 \times 10^{-6}\)</span>) es
+casi seis órdenes de magnitud menor que el que resultaría de dejar
+<code>fitdf = 0</code>. La conclusión de “rechazo” sobrevive en este
+caso porque <span class="math inline">\(Q\)</span> es grande, pero en un
+caso límite el error de grados de libertad podría cambiar la
+decisión.</td>
+<td align="left">Pasar siempre <code>fitdf</code> igual al número de
+parámetros estimados en el modelo cuyos residuos se están probando —
+aquí, <code>fitdf = 12</code> — y reportar el <code>valor_p</code>
+correcto, no el más cómodo.</td>
 </tr>
 <tr class="even">
-<td align="center">4</td>
-<td align="left">MASE <span class="math inline">\(= 0{,}92\)</span> con
-denominador de <code>y[1:80]</code></td>
-<td align="left">Numerador y denominador de <strong>tramos
-distintos</strong> de una serie que se multiplica por <span class="math inline">\(\approx 6\)</span>.</td>
-<td align="left">Razón sin sentido: mezcla calidad del método con
-crecimiento de la serie.</td>
-<td align="left">Ingenuo calculado sobre los <strong>mismos orígenes
-80:107</strong> (da MAD <span class="math inline">\(=
-0{,}93\)</span>).</td>
+<td align="left">4</td>
+<td align="left">La afirmación “el método gana: su MASE es menor que
+uno”, con el denominador del ingenuo calculado sobre
+<code>y[1:min(origenes)]</code> en vez de sobre los mismos orígenes
+80:107</td>
+<td align="left"><strong>Denominador de otro tramo de la serie</strong>,
+exactamente el error que advierte el paso 5: el numerador se mide sobre
+los trimestres 81–108 y el denominador sobre los trimestres 1–80, que en
+<code>UKgas</code> son prácticamente otra serie — el nivel medio de
+81–108 es varias veces el de 1–80, y la amplitud estacional crece en la
+misma proporción (paso 1 de la ruta 2, correlación nivel-amplitud <span class="math inline">\(= 0{,}99\)</span>).</td>
+<td align="left">El MASE de 0,92 <strong>no mide qué tan bueno es el
+método</strong>: mezcla la calidad del método con el hecho de que la
+serie creció mucho entre los dos tramos, y el error absoluto del ingenuo
+en unidades de los años sesenta es mucho menor que en unidades de los
+años ochenta, aunque proporcionalmente el ingenuo se equivoque parecido
+en ambas épocas.</td>
+<td align="left">Reportar el MASE con el ingenuo estacional calculado
+sobre <strong>los mismos 28 orígenes</strong> (80 a 107) del método que
+se evalúa, como una fila más de la tabla de la ruta 2 (paso 5) — con
+eso, la comparación entre HW aditivo y el ingenuo da una razón de MAD de
+<span class="math inline">\(37{,}23 / 39{,}96 = 0{,}932\)</span>, una
+ventaja real pero bastante más modesta que la que sugiere el cálculo con
+el denominador equivocado, y acompañada de RMSE y MAPE para una lectura
+completa.</td>
 </tr>
 </tbody>
 </table>
@@ -2928,7 +3033,10 @@ crecimiento de la serie.</td>
 <p><span class="math display">\[
 MM_{t+1}(k)=MM_t(k)+\frac{Y_{t+1}-Y_{t+1-k}}{k}.
 \]</span></p>
-<div class="respuesta">
+</div>
+</div>
+<div id="d.1-demostración" class="section level1 respuesta">
+<h1>D.1 — Demostración</h1>
 <p>Por definición, para <span class="math inline">\(t \ge
 k\)</span>:</p>
 <p><span class="math display">\[
@@ -2973,18 +3081,19 @@ mm  &lt;- media_movil(y, k)
 izq &lt;- mm[(k + 1):60]
 der &lt;- mm[k:59] + (y[(k + 1):60] - y[1:(60 - k)]) / k
 max(abs(izq - der))</code></pre>
-<p>[1] 1.77636e-15</p>
+<p>[1] 1.77636e-15 [1] 1.77636e-15</p>
 <p>La diferencia máxima entre ambos lados es del orden de 10 − 15 , el
 error de redondeo de punto flotante: la identidad queda confirmada
 numéricamente.</p>
-</div>
 <div id="d.2.-recursión-del-suavizamiento-exponencial" class="section level2">
 <h2>D.2. Recursión del suavizamiento exponencial</h2>
 <p>Partir de la suma infinita y demostrar:</p>
 <p><span class="math display">\[
 \widehat Y_{t+1}=\alpha Y_t+(1-\alpha)\widehat Y_t.
 \]</span></p>
-<div class="respuesta">
+</div>
+<div id="d.2-demostración" class="section level1 respuesta">
+<h1>D.2 — Demostración</h1>
 <p>Parta de</p>
 <p><span class="math display">\[
 \hat{Y}_{t+1} = \alpha \sum_{i \ge 0} (1 - \alpha)^i \, Y_{t-i}
@@ -3054,8 +3163,8 @@ diferencia de una tendencia lineal</p>
 <p>Sea <span class="math inline">\(Y_t=\beta_0+\beta_1t+\varepsilon_t\)</span>, con
 <span class="math inline">\(\varepsilon_t\sim RB(0,\sigma^2)\)</span>, y
 <span class="math inline">\(Z_t=Y_t-Y_{t-1}\)</span>.</p>
-</div>
-<div class="respuesta">
+<div id="d.3-demostración" class="section level1 respuesta">
+<h1>D.3 — Demostración</h1>
 <div id="a-diferenciar-una-tendencia-lineal-elimina-el-nivel-y-convierte-la-pendiente-en-la-media" class="section level2">
 <h2>a) Diferenciar una tendencia lineal elimina el nivel y convierte la
 pendiente en la media</h2>
@@ -3152,7 +3261,7 @@ estacionario alrededor de una recta.</p>
 <p>Demostrar que los coeficientes de la regresión estacional sin
 intercepto son los promedios de cada estación.</p>
 <div class="respuesta">
-<p><strong>D.4</strong></p>
+<p><strong>ESCRIBIR AQUÍ — D.4</strong></p>
 <ul>
 <li>Demostración de beta_j estimado = media de la estación j:</li>
 <li>Escritura explícita de X transpuesta X y X transpuesta Y para cuatro
@@ -3164,33 +3273,48 @@ sesión):</li>
 </ul>
 </div>
 </div>
-</div>
 <div id="cierre-autoevaluación" class="section level1">
 <h1>6. Cierre: autoevaluación</h1>
-<div class="respuesta">
-<p><strong>Autoevaluación</strong></p>
-<ul>
-<li><ol style="list-style-type: decimal">
-<li>¿Qué distingue en el correlograma una serie de tipo II de una de
-tipo IV?:</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: decimal">
-<li>¿Por qué el MSE dentro de muestra no sirve para elegir entre modelos
-anidados?:</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: decimal">
-<li>¿Cuál es la línea de evaluar_ruta() que impide la fuga de
-información?:</li>
-</ol></li>
-<li><ol start="4" style="list-style-type: decimal">
-<li>¿Por qué una serie puede ser estacionaria en media sin que sus
-incrementos sean ruido blanco?:</li>
-</ol></li>
-<li><ol start="5" style="list-style-type: decimal">
-<li>¿Qué se reporta junto con un pronóstico, además del número?:</li>
-</ol></li>
-</ul>
 </div>
+<div id="preguntas-de-cierre-conceptual" class="section level1 respuesta">
+<h1>Preguntas de cierre conceptual</h1>
+<p><strong>¿Qué distingue en el correlograma una serie de tipo II de una
+de tipo IV?</strong></p>
+<p>En la de tipo II los picos en <span class="math inline">\(s, 2s, 3s,
+\dots\)</span> se mantienen sin decaer y los rezagos intermedios son
+negativos y simétricos (oscila alrededor de cero); en la de tipo IV esos
+mismos picos aparecen montados sobre un decaimiento lento positivo y los
+valles intermedios no bajan de cero. Ejemplos: <code>nottem</code> con
+<span class="math inline">\(r_6 = -0{,}88\)</span> (tipo II puro),
+<code>UKgas</code> con <span class="math inline">\(r_6 = 0{,}13\)</span>
+(tipo IV con pedestal positivo).</p>
+<p><strong>¿Por qué el MSE dentro de muestra no sirve para elegir entre
+modelos anidados?</strong></p>
+<p>Porque la suma de cuadrados residual <strong>nunca sube</strong> al
+añadir regresores: el modelo grande siempre gana, aunque el parámetro
+extra solo esté ajustando ruido. Elegir por MSE dentro de muestra es
+elegir siempre el modelo más grande. Hace falta o una prueba que
+penalice el parámetro (la <span class="math inline">\(F\)</span> del
+paso 8) o una evaluación fuera de muestra (el origen móvil).</p>
+<p><strong>¿Cuál es la única línea de <code>origen_movil()</code> que
+impide la fuga de información?</strong></p>
+<pre class="r"><code>res[i, j] &lt;- metodos[[j]](y[1:o], h)</code></pre>
+<p>El corte <code>y[1:o]</code>, que entrega al método únicamente el
+pasado de su propio origen. Y solo protege si <strong>todo</strong>
+—parámetros incluidos— se estima dentro de esa llamada; el bloque 1 de
+la auditoría es precisamente una fuga que esquiva esta línea.</p>
+<p><strong>¿Por qué una serie puede ser estacionaria en media sin que
+sus incrementos sean ruido blanco?</strong></p>
+<p>Porque la estacionariedad en media solo exige que <span class="math inline">\(\mathbb{E}(Z_t)\)</span> no dependa de <span class="math inline">\(t\)</span>, mientras que el ruido blanco exige
+además incorrelación a todos los rezagos. En D.3, <span class="math inline">\(Z_t = \beta_1 + u_t\)</span> tiene media constante
+<span class="math inline">\(\beta_1\)</span> pero <span class="math inline">\(\rho_u(1) = -1/2\)</span>.</p>
+<p><strong>¿Qué se reporta junto con un pronóstico, además del
+número?</strong></p>
+<p>Una medida de incertidumbre (banda o intervalo) con su naturaleza
+declarada —heurística o probabilística—, el horizonte y el origen a los
+que corresponde, el método usado y su desempeño frente a un referente
+ingenuo sobre los mismos orígenes, y una interpretación en las unidades
+del problema para quien va a tomar la decisión.</p>
 </div>
 <div id="referencias-de-implementación" class="section level1">
 <h1>Referencias de implementación</h1>
