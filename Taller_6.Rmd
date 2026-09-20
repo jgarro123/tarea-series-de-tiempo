@@ -373,7 +373,7 @@ que bajo $H_0$ se distribuye aproximadamente $\chi^2_m$ (aquí $m=24$, sin desco
 Con $\alpha = 0{,}05$, el valor crítico es $\chi^2_{24;\,0{,}95} = 36{,}42$. Se rechaza $H_0$ si $Q > 36{,}42$ (equivalentemente, si valor_p $< 0.05$).
 
 **¿Por qué rechaza en las cuatro?**  
-Los cuatro $Q$ (203, 2342, 953 y 237) superan por completo ese umbral y los cuatro valor_p son prácticamente cero. Ninguna de las cuatro series es ruido blanco: todas tienen memoria, ya sea persistencia de nivel (Hurón), estacionalidad (Nottingham, muertes) o tendencia (Australia). Con series tan autocorrelacionadas y $T$ moderado a grande, casi cualquier serie real rechazaría esta prueba.
+Los cuatro $Q$ (203, 2342, 953 y 237) superan por completo ese umbral y los cuatro valor_p son prácticamente cero. Ninguna de las cuatro series es ruido blanco.
 
 **¿Por qué no distingue los patrones?**  
 $Q$ es una suma de cuadrados de los $r_k$: acumula magnitud sin registrar en qué rezagos se concentra la autocorrelación. Un $r_1$ grande (tendencia) y un $r_{12}$ grande (estacionalidad) contribuyen igual a $Q$. La prueba contesta "¿queda estructura?", no "¿qué tipo de estructura queda?" — esa segunda pregunta la responde la forma del correlograma (Ejercicios A.1, A.3), no el valor agregado de Ljung–Box.
