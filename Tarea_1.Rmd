@@ -1,4 +1,4 @@
----
+|> ---
 title: "Tarea #1"
 author: "Juan David Garro"
 date: "`r Sys.Date()`"
@@ -371,7 +371,7 @@ for (i in seq_along(rutas)) {
 
 La ruta 1 utiliza $m=\lfloor240/4\rfloor=60$ rezagos y la ruta 2 utiliza $m=\lfloor108/4\rfloor=27$.
 
-### Autocorrelaciones en los rezagos estacionales
+### Autocorrelaciones en los rezagos estacionales(checho gva)
 
 ```{r autocorrelaciones-rutas}
 # Se crea una tabla vacía que recibirá una fila por cada ruta.
