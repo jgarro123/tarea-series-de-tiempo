@@ -415,9 +415,6 @@ for (nombre in names(series_A)) {
 mostrar_tabla(tabla_A_ljung)
 ```
 
-::::::::::::::::::::: respuesta
-## A.3. Tabla de decisión
-
 ## A.3. Tabla de decisión
 
 | Serie | Patrón | Evidencia del correlograma | Familia de técnicas |
@@ -627,6 +624,8 @@ La caída entre el primer y el último pico es de apenas **14 %**, y ese poco qu
 - En el **tipo IV** la tendencia superpone un **pedestal positivo** que desplaza toda la función hacia arriba: los picos siguen presentes pero montados sobre un decaimiento lento, y los valles intermedios no vuelven a cruzar por debajo de cero.
 
 La simetría casi perfecta de `nottem` alrededor de cero es la firma del **tipo II puro**.
+
+:::
 
 ### Ruta 2. Consumo trimestral de gas del Reino Unido
 
@@ -1273,4 +1272,3 @@ son los promedios de cada estación.
 # Se registra la versión de R y de los paquetes para reproducir la ejecución.
 sessionInfo()
 ```
-:::::::::::::::::::::
