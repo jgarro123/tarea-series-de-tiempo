@@ -60,125 +60,262 @@ a esas bibliotecas y cálculos elementales. No se necesita el código de clases 
   Se muestra solo con al menos 40 errores, umbral operativo que no garantiza
   por sí mismo una buena aproximación en muestras pequeñas.
 
-```{r utilidades}
-# mostrar_tabla recibe un data.frame y lo presenta como tabla Markdown.
-# digits fija los decimales y row.names evita una columna extra de índices.
+```{r utilidades, echo=TRUE}
+# Esta primera función se crea para presentar todas las tablas del informe de la
+# misma manera. El objeto tabla es el parámetro de entrada: cuando se llame a la
+# función, recibirá como argumento un data.frame con los resultados que se desean
+# mostrar. La función no modifica los cálculos; solamente organiza su presentación.
 mostrar_tabla <- function(tabla) {
+  # cat imprime texto directamente en el documento. Los dos saltos de línea,
+  # representados por "\n\n", separan la tabla del contenido anterior para que
+  # Markdown pueda reconocerla y dibujarla correctamente en el archivo HTML.
   cat("\n\n")
+
+  # knitr::kable convierte el data.frame recibido en una tabla compatible con
+  # Markdown. En esta llamada, tabla es el argumento que contiene los datos;
+  # digits = 4 pide mostrar cuatro cifras decimales y row.names = FALSE evita
+  # agregar una columna innecesaria con los números de las filas.
+  # print envía al documento la tabla que kable acaba de construir.
   print(knitr::kable(tabla, digits = 4, row.names = FALSE))
+
+  # Se dejan otros dos saltos de línea para separar la tabla del texto siguiente.
   cat("\n\n")
 }
 
-# graficar_acf recibe valores y un máximo de rezagos.
-# acf calcula las correlaciones sin dibujar su gráfica automática.
-# La primera posición es el rezago cero y se excluye con [-1].
+# Esta función construye el correlograma con las dos bandas de confianza pedidas.
+# Tiene tres parámetros: serie recibe las observaciones; m fija el mayor rezago
+# que se dibujará; y titulo recibe el texto que aparecerá encima del gráfico.
 graficar_acf <- function(serie, m, titulo) {
+  # as.numeric elimina atributos de calendario y deja únicamente los valores.
+  # El vector resultante se guarda en valores porque la ACF necesita operar con
+  # las observaciones numéricas, no con las etiquetas temporales de la serie.
   valores <- as.numeric(serie)
+
+  # length cuenta las observaciones disponibles. El tamaño n se reutiliza en las
+  # fórmulas de las bandas: cuanto mayor sea n, más estrechos serán sus límites.
   n <- length(valores)
+
+  # stats::acf calcula las autocorrelaciones desde el rezago cero hasta m.
+  # lag.max = m establece el último rezago; plot = FALSE evita que acf produzca
+  # su gráfico automático, porque aquí se construirá uno con ambas bandas.
+  # $acf extrae las correlaciones del resultado, as.numeric las vuelve un vector
+  # sencillo y [-1] retira el rezago cero, cuya autocorrelación siempre es uno.
   r <- as.numeric(stats::acf(valores, lag.max = m, plot = FALSE)$acf)[-1]
+
+  # seq_along crea los números 1, 2, ..., m. Estos valores serán las posiciones
+  # horizontales de las autocorrelaciones almacenadas en r.
   rezagos <- seq_along(r)
+
+  # qnorm(0.975) devuelve aproximadamente 1.96, el valor crítico normal usado
+  # para una confianza del 95 %. Al dividirlo entre sqrt(n) se obtiene la banda
+  # constante asociada con la aproximación de ruido blanco.
   blanca <- stats::qnorm(0.975) / sqrt(n)
-  # La suma para el rezago k contiene los cuadrados de r_1 hasta r_(k-1).
+
+  # cumsum(r^2) acumula los cuadrados de las autocorrelaciones. Se antepone un
+  # cero porque, para calcular la banda de Bartlett del rezago k, solo se usan
+  # r_1, ..., r_(k-1), es decir, no se incluye la correlación del propio rezago.
   previas <- c(0, cumsum(r^2))[seq_along(r)]
+
+  # La fórmula de Bartlett produce un límite diferente en cada rezago. El objeto
+  # bartlett es, por tanto, un vector con tantos límites como elementos tiene r.
   bartlett <- stats::qnorm(0.975) * sqrt((1 + 2 * previas) / n)
+
+  # plot dibuja cada autocorrelación como una barra vertical porque type = "h".
+  # ylim reúne los límites necesarios para que las barras y las dos bandas sean
+  # visibles. main, xlab y ylab definen el título y los nombres de los ejes.
   plot(rezagos, r, type = "h",
        ylim = range(-1, 1, -bartlett, bartlett),
        main = titulo, xlab = "Rezago (observaciones)", ylab = "ACF")
+
+  # abline añade primero la referencia horizontal de autocorrelación igual a cero.
   abline(h = 0)
+
+  # Esta segunda llamada añade los límites positivo y negativo de ruido blanco.
+  # col = "blue" los pinta de azul y lty = 2 utiliza líneas discontinuas.
   abline(h = c(-blanca, blanca), col = "blue", lty = 2)
+
+  # lines incorpora los límites superior e inferior de Bartlett. Se dibujan por
+  # separado porque cambian con el rezago; lty = 3 los diferencia visualmente.
   lines(rezagos, bartlett, col = "red", lty = 3)
   lines(rezagos, -bartlett, col = "red", lty = 3)
+
+  # legend identifica las dos clases de bandas. "topright" fija la posición;
+  # col y lty reproducen sus colores y trazos; cex = 0.8 reduce el texto al 80 %.
   legend("topright", c("Ruido blanco", "Bartlett"),
          col = c("blue", "red"), lty = c(2, 3), cex = 0.8)
 }
 
-# resultado_ljung reúne los resultados de Box.test en una sola fila.
-# lag es el máximo rezago y fitdf indica cuántos grados de libertad se restan.
-# El valor p se imprime con un límite pequeño para evitar presentar cero exacto.
+# Esta función aplica Ljung-Box y devuelve sus resultados en una sola fila.
+# valores recibe la serie que se evaluará; m indica el número máximo de rezagos;
+# y p representa cuántos parámetros estimados deben descontarse de los grados de
+# libertad. p = 0 es el valor predeterminado si no se entrega otro argumento.
 resultado_ljung <- function(valores, m, p = 0) {
+  # Box.test realiza la prueba. x recibe la serie como vector numérico; lag = m
+  # define hasta qué rezago se examina la autocorrelación conjunta; type selecciona
+  # el estadístico de Ljung-Box; y fitdf = p descuenta los parámetros estimados.
+  # El objeto prueba conserva el estadístico Q, sus grados de libertad y el valor p.
   prueba <- stats::Box.test(
     x = as.numeric(valores), lag = m, type = "Ljung-Box", fitdf = p
   )
+
+  # data.frame organiza el resultado para unirlo después con otras series.
+  # unname elimina nombres internos que no se necesitan en las celdas. format.pval
+  # presenta el valor p con cuatro cifras y eps evita imprimir un cero exacto cuando
+  # el resultado es extremadamente pequeño.
   data.frame(n = length(valores), m = m, parametros_descontados = p,
              gl = unname(prueba$parameter), Q = unname(prueba$statistic),
              valor_p = format.pval(prueba$p.value, digits = 4, eps = 1e-12))
 }
 
-# pronosticar_metodo ajusta un candidato con los datos que recibe.
-# entrenamiento es el único vector disponible al modelo; h es el horizonte.
-# s indica cuántas observaciones conforman un ciclo estacional.
+# Esta función reúne los métodos candidatos y devuelve sus pronósticos.
+# entrenamiento contiene únicamente los datos conocidos en un origen; s indica
+# cuántas observaciones forman un ciclo estacional; metodo es el nombre del modelo
+# que se debe aplicar; y h es el horizonte, cuyo valor predeterminado es un periodo.
 pronosticar_metodo <- function(entrenamiento, s, metodo, h = 1) {
+  # n cuenta el tamaño de la muestra de entrenamiento. seq_len(h) produce las
+  # posiciones 1, ..., h; al sumarlas a n se obtienen los índices futuros.
   n <- length(entrenamiento)
   futuro <- n + seq_len(h)
+
+  # Si se solicita el método ingenuo estacional, tail extrae el ciclo más reciente.
+  # rep lo repite hasta completar h pronósticos y return termina aquí la función.
   if (metodo == "Ingenuo estacional") {
-    # Se repite el último ciclo disponible tantas veces como haga falta.
     return(rep(tail(entrenamiento, s), length.out = h))
   }
+
+  # %in% comprueba si el nombre pertenece a una de las dos variantes de
+  # Holt-Winters. El if interno traduce ese nombre al argumento que exige la función.
   if (metodo %in% c("HW aditivo", "HW multiplicativo")) {
     tipo <- if (metodo == "HW aditivo") "additive" else "multiplicative"
-    # ts conserva la frecuencia; HoltWinters estima las constantes con
-    # este entrenamiento. predict obtiene h observaciones futuras.
+
+    # ts convierte el vector en serie temporal y frequency = s registra su periodo.
+    # HoltWinters estima nivel, tendencia y estacionalidad usando exclusivamente el
+    # entrenamiento; seasonal = tipo elige la forma aditiva o multiplicativa.
     ajuste <- stats::HoltWinters(
       x = stats::ts(entrenamiento, frequency = s), seasonal = tipo
     )
+
+    # predict obtiene h valores futuros mediante n.ahead = h. as.numeric elimina
+    # atributos adicionales y return entrega únicamente el vector de pronósticos.
     return(as.numeric(stats::predict(ajuste, n.ahead = h)))
   }
-  # t es la posición temporal y q identifica la estación mediante un factor.
-  # Los mismos niveles de q se usan al entrenar y al pronosticar.
+
+  # Para las regresiones se crea una tabla con tres columnas: y almacena la
+  # respuesta observada, t representa el tiempo y q identifica la estación.
+  # factor transforma q en una variable categórica y levels = seq_len(s) conserva
+  # exactamente las mismas s estaciones en entrenamiento y pronóstico.
   datos <- data.frame(
     y = entrenamiento, t = seq_len(n),
     q = factor((seq_len(n) - 1) %% s + 1, levels = seq_len(s))
   )
+
+  # nuevos contiene las posiciones que se desean pronosticar. No incluye y porque
+  # esos valores todavía son desconocidos; sí conserva t y la estación q.
   nuevos <- data.frame(
     t = futuro, q = factor((futuro - 1) %% s + 1, levels = seq_len(s))
   )
+
+  # lm ajusta la regresión indicada por la fórmula. q - 1 estima una media propia
+  # para cada estación sin añadir un intercepto general.
   if (metodo == "Medias estacionales") {
     ajuste <- stats::lm(y ~ q - 1, data = datos)
+
+  # y ~ t + q combina una tendencia lineal temporal con efectos estacionales.
   } else if (metodo == "Tendencia y ficticias") {
     ajuste <- stats::lm(y ~ t + q, data = datos)
+
+  # log(y) cambia la respuesta a escala logarítmica. Esta forma permite que los
+  # cambios estacionales se interpreten de manera proporcional al nivel.
   } else if (metodo == "Log tendencia y ficticias") {
     ajuste <- stats::lm(log(y) ~ t + q, data = datos)
-    # exp devuelve la escala original y el factor corrige la retransformación.
-    # Tanto los residuos como el factor proceden solo del entrenamiento.
+
+    # residuals extrae los errores del ajuste en escala logarítmica. exp los lleva
+    # a escala multiplicativa y mean calcula el factor que corrige el sesgo causado
+    # al regresar con exp a la escala original. Solo se usan datos de entrenamiento.
     factor_retransformacion <- mean(exp(stats::residuals(ajuste)))
+
+    # predict calcula los valores logarítmicos para nuevos; exp devuelve la escala
+    # original y la multiplicación aplica la corrección. return entrega el resultado.
     return(as.numeric(exp(stats::predict(ajuste, newdata = nuevos))) *
              factor_retransformacion)
   } else {
+    # stop detiene la ejecución con un mensaje si metodo no coincide con ningún
+    # nombre permitido. Así se evita producir silenciosamente un resultado incorrecto.
     stop("Nombre de método no reconocido.")
   }
+
+  # Para los dos modelos lineales sin logaritmo, predict usa el ajuste y las filas
+  # de nuevos. as.numeric entrega los pronósticos como un vector sencillo.
   as.numeric(stats::predict(ajuste, newdata = nuevos))
 }
 
-# evaluar_ruta crea una matriz: filas = orígenes; columnas = candidatos.
-# En cada origen o se reestiman los modelos con y[1:o] y se predice y[o+1].
-# No se eliminan fallos ni observaciones por método: eso alteraría la comparación.
+# Esta función ejecuta la evaluación de origen móvil para una ruta completa.
+# y es la serie numérica; s es su periodo; origenes contiene las últimas posiciones
+# conocidas en cada evaluación; y metodos enumera los candidatos que se compararán.
 evaluar_ruta <- function(y, s, origenes, metodos) {
+  # matrix crea el espacio donde se guardarán los pronósticos. NA_real_ reserva
+  # celdas numéricas aún vacías; cada fila corresponde a un origen y cada columna
+  # a un método. dimnames asigna como etiquetas los orígenes y los nombres dados.
   pronosticos <- matrix(NA_real_, nrow = length(origenes),
                        ncol = length(metodos),
                        dimnames = list(origenes, metodos))
+
+  # El primer ciclo recorre los orígenes. seq_along devuelve posiciones válidas
+  # incluso si cambia la cantidad de orígenes; o guarda el origen actual.
   for (i in seq_along(origenes)) {
     o <- origenes[i]
+
+    # seq_len(o) selecciona desde la primera observación hasta el origen actual.
+    # Así la ventana crece, pero nunca utiliza información posterior al origen.
     entrenamiento <- y[seq_len(o)]
+
+    # El segundo ciclo recorre todos los métodos bajo exactamente el mismo origen.
+    # Cada modelo se vuelve a estimar y produce un pronóstico de horizonte uno.
     for (j in seq_along(metodos)) {
       pronosticos[i, j] <- pronosticar_metodo(
         entrenamiento, s, metodos[j], h = 1
       )
     }
   }
+
+  # Cada origen o pronostica la observación o + 1. Por eso este vector contiene
+  # los valores reales que se compararán fila por fila con la matriz de pronósticos.
   observados <- y[origenes + 1]
+
+  # stopifnot verifica dos condiciones necesarias: todos los pronósticos deben ser
+  # finitos y ningún observado puede ser cero, pues el MAPE divide entre ese valor.
   stopifnot(all(is.finite(pronosticos)), all(observados != 0))
+
+  # Los errores siguen la convención declarada: observado menos pronosticado.
+  # R resta observados a cada columna de la matriz y conserva su organización.
   errores <- observados - pronosticos
+
+  # Se inicia una tabla vacía que recibirá una fila de medidas por cada método.
   medidas <- data.frame()
+
+  # El ciclo calcula todas las medidas sobre los mismos orígenes para garantizar
+  # una comparación justa entre los candidatos.
   for (j in seq_along(metodos)) {
+    # e extrae la columna de errores perteneciente al método actual.
     e <- errores[, j]
+
+    # rbind agrega una fila: RMSE penaliza más los errores grandes; MAD promedia
+    # sus valores absolutos; y MAPE expresa el error absoluto en porcentaje del
+    # observado. length(origenes) registra cuántos pronósticos fueron evaluados.
     medidas <- rbind(medidas, data.frame(
       Metodo = metodos[j], Origenes = length(origenes),
       RMSE = sqrt(mean(e^2)), MAD = mean(abs(e)),
       MAPE_porcentaje = 100 * mean(abs(e / observados))
     ))
   }
+
+  # order devuelve el orden ascendente del RMSE. La primera fila corresponderá al
+  # método con menor error; luego se eliminan los nombres automáticos de las filas.
   medidas <- medidas[order(medidas$RMSE), ]
   rownames(medidas) <- NULL
+
+  # list reúne todos los productos para reutilizarlos más adelante. ganador guarda
+  # el nombre ubicado en la primera fila de la tabla ya ordenada por RMSE.
   list(tabla = medidas, errores = errores, pronosticos = pronosticos,
        observados = observados, ganador = medidas$Metodo[1])
 }
