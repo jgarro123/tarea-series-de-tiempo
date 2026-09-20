@@ -541,11 +541,38 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 1, paso 2**
 
--   Hipótesis, significancia y regla de decisión:
--   Interpretación de Ljung–Box:
--   ¿Los picos en múltiplos de s decaen o se mantienen?:
--   ¿Qué distingue a los tipos II y IV?:
-:::
+
+## Ljung–Box con 48 rezagos
+
+### Hipótesis, significancia y regla
+
+$H_0:$ `nottem` es ruido blanco hasta el rezago $m = 48$, contra $H_1:$ no lo es. Con $\alpha = 0{,}05$ se rechaza si
+
+$$
+Q > \chi^2_{48;\,0{,}95} = 65{,}17.
+$$
+
+### Interpretación de Ljung–Box
+
+$Q = 4491{,}8$ con valor\_p $< 10^{-12}$: se rechaza $H_0$ con enorme margen. Era esperable — la serie tiene un ciclo estacional casi determinístico, lejos de cualquier noción de ruido blanco.
+
+### ¿Decaen o se mantienen los picos?
+
+Se mantienen:
+
+$$
+r_{12} = 0{,}884,\quad r_{24} = 0{,}866,\quad r_{36} = 0{,}810,\quad r_{48} = 0{,}762.
+$$
+
+La caída entre el primer y el último pico es de apenas **14 %**, y ese poco que cae es el efecto de borde de tener menos pares disponibles al calcular rezagos altos con $T = 240$ fijo, no un decaimiento real de la dependencia estacional.
+
+### ¿Qué distingue tipo II de tipo IV?
+
+- En el **tipo II** el correlograma oscila alrededor de cero con período $s$: los picos en $s, 2s, 3s, \dots$ son positivos y los valles intermedios (en $s/2, 3s/2, \dots$) son negativos de magnitud comparable — aquí no se pidió, pero puede verificarse que $r_6 \approx -0{,}88$, casi espejo de $r_{12}$.
+
+- En el **tipo IV** la tendencia superpone un **pedestal positivo** que desplaza toda la función hacia arriba: los picos siguen presentes pero montados sobre un decaimiento lento, y los valles intermedios no vuelven a cruzar por debajo de cero.
+
+La simetría casi perfecta de `nottem` alrededor de cero es la firma del **tipo II puro**.
 
 ### Paso 3. Partir la muestra
 
