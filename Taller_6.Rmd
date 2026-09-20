@@ -540,11 +540,11 @@ plot(serie, main = "Consumo de gas en Reino Unido",
 
 | Componente         | ¿Se observa? | Evidencia   |
 |:-------------------|:-------------|:------------|
-| Nivel              | [Completar]  | [Completar] |
-| Tendencia          | [Completar]  | [Completar] |
-| Estacionalidad     | [Completar]  | [Completar] |
-| Ciclo              | [Completar]  | [Completar] |
-| Episodios atípicos | [Completar]  | [Completar] |
+| Nivel              | Sí; cambia con el tiempo | El consumo medio pasa de valores cercanos a 120 millones de termias al inicio a valores superiores a 600 millones hacia el final. |
+| Tendencia          | Sí, creciente | La trayectoria general aumenta durante todo el período y el crecimiento se vuelve más pronunciado desde mediados de la década de 1970. |
+| Estacionalidad     | Sí, dominante | Los máximos y mínimos se repiten cada cuatro trimestres; además, la amplitud estacional crece a medida que aumenta el nivel. |
+| Ciclo              | No se observa claramente | Fuera de la oscilación trimestral, la gráfica no muestra movimientos recurrentes de varios años alrededor de la tendencia. |
+| Episodios atípicos | No se observan claramente | Los picos y valles siguen el patrón estacional creciente y no aparece un valor aislado que rompa de forma evidente la dinámica de la serie. |
 
 #### Procedimiento adicional de la ruta 2: nivel y amplitud anual
 
