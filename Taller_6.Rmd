@@ -32,6 +32,16 @@ options(digits = 6)
 </style>
 ```
 
+# Guía de trabajo
+
+Este documento desarrolla el código de ambas rutas. Las cajas **ESCRIBIR
+AQUÍ** y las celdas **[Completar]** están reservadas para las respuestas
+de los autores. Los comentarios del código describen las operaciones;
+las interpretaciones se escriben en los espacios correspondientes.
+
+La estación C conserva los fragmentos del enunciado como material para
+auditar. La estación D queda reservada para una próxima sesión. Pueden
+transcribir allí sus demostraciones o incorporar sus imágenes.
 
 # 1. Utilidades y decisiones de implementación
 
@@ -62,7 +72,7 @@ necesita el código de clases anteriores.
     operativo que no garantiza por sí mismo una buena aproximación en
     muestras pequeñas.
 
-```{r utilidades, echo=FALSE}
+```{r utilidades, echo=TRUE}
 # Esta primera función se crea para presentar todas las tablas del informe de la
 # misma manera. El objeto tabla es el parámetro de entrada: cuando se llame a la
 # función, recibirá como argumento un data.frame con los resultados que se desean
@@ -371,8 +381,10 @@ estadístico es
 
 **Hipótesis.**\
 $H_0: \rho_1 = \rho_2 = \cdots = \rho_{24} = 0$ (la serie es ruido
-blanco hasta el rezago 24) contra $H_1:$ algún $\rho_k \neq 0$.
-$H_0$ se distribuye aproximadamente $\chi^2_m$ (aquí $m=24$,
+blanco hasta el rezago 24) contra $H_1:$ algún $\rho_k \neq 0$. El
+estadístico es
+
+que bajo $H_0$ se distribuye aproximadamente $\chi^2_m$ (aquí $m=24$,
 sin descontar parámetros porque se prueba la serie cruda, no residuos).
 
 **Significancia y regla.**\
@@ -604,15 +616,7 @@ $$
 
 La caída entre el primer y el último pico es de apenas **14 %**, y ese poco que cae es el efecto de borde de tener menos pares disponibles al calcular rezagos altos con $T = 240$ fijo, no un decaimiento real de la dependencia estacional.
 
-#### ¿Qué distingue tipo II de tipo IV?
-
-- En el **tipo II** el correlograma oscila alrededor de cero con período $s$: los picos en $s, 2s, 3s, \dots$ son positivos y los valles intermedios (en $s/2, 3s/2, \dots$) son negativos de magnitud comparable — aquí no se pidió, pero puede verificarse que $r_6 \approx -0{,}88$, casi espejo de $r_{12}$.
-
-- En el **tipo IV** la tendencia superpone un **pedestal positivo** que desplaza toda la función hacia arriba: los picos siguen presentes pero montados sobre un decaimiento lento, y los valles intermedios no vuelven a cruzar por debajo de cero.
-
-La simetría casi perfecta de `nottem` alrededor de cero es la firma del **tipo II puro**.
-
-:::
+  
 
 
 ```{r r2-paso2}
@@ -634,37 +638,10 @@ mostrar_tabla(resultado_ljung(y, m = 4 * s))
 ::: respuesta
 **ESCRIBIR AQUÍ — Ruta 2, paso 2**
 
-#### Ljung–Box con 16 rezagos
-
-#### Hipótesis, significancia y regla
-
-$H_0:$ `UKgas` es ruido blanco hasta el rezago $m = 16$, contra $H_1:$ existe autocorrelación en al menos uno de los primeros 16 rezagos. Con $\alpha = 0{,}05$ se rechaza $H_0$ si
-
-$$
-Q > \chi^2_{16;\,0{,}95} = 26{,}30
-$$
-
-o si el valor $p < 0{,}05$.
-
-#### Interpretación de Ljung–Box
-
-Como $Q = 503{,}3$ y el valor\_p $< 10^{-12}$, se rechaza $H_0$ con amplio margen. Por tanto, la serie presenta una fuerte dependencia temporal y no se comporta como ruido blanco.
-
-#### ¿Decaen o se mantienen los picos?
-
-Los picos estacionales decaen gradualmente, aunque permanecen elevados:
-
-$$
-r_4 = 0{,}902,\quad r_8 = 0{,}806,\quad r_{12} = 0{,}720,\quad r_{16} = 0{,}633.
-$$
-
-#### ¿Qué distingue tipo II de tipo IV?
-
-- En el **tipo II**, la ACF oscila alrededor de cero debido a la estacionalidad, con picos positivos en los múltiplos de $s$ y valores negativos entre ellos.
-
-- En el **tipo IV**, la tendencia mantiene las autocorrelaciones positivas y produce un decaimiento lento, sobre el cual aparecen los picos estacionales.
-
-Como `UKgas` presenta autocorrelaciones positivas que disminuyen lentamente y picos trimestrales persistentes, corresponde al **tipo IV**.
+-   Hipótesis, significancia y regla de decisión:
+-   Interpretación de Ljung–Box:
+-   ¿Los picos en múltiplos de s decaen o se mantienen?:
+-   ¿Qué distingue a los tipos II y IV?:
 :::
 
 ## Paso 3. Partir la muestra
@@ -1373,115 +1350,44 @@ Demostrar que los coeficientes de la regresión estacional sin intercepto
 son los promedios de cada estación.
 
 ::: respuesta
-# D.4 — Demostración
+**ESCRIBIR AQUÍ — D.4**
 
-Sea $X$ la matriz $n \times r$ de ficticias (con $n$ ciclos completos), $x_{tj} = 1$ si la observación $t$ pertenece a la estación $j$ y $0$ en otro caso. La entrada $(j, l)$ de $X^\top X$ es
-
-$$
-(X^\top X)_{jl} = \sum_{t=1}^{nr} x_{tj} \, x_{tl}.
-$$
-
-Aquí se usa que **cada fila de $X$ tiene exactamente un uno**: si $j \ne l$ no existe ningún $t$ con $x_{tj} = x_{tl} = 1$ (una observación no puede pertenecer a dos estaciones a la vez), así que $(X^\top X)_{jl} = 0$. Si $j = l$, $x_{tj}^2 = x_{tj}$ y la suma cuenta cuántas observaciones caen en la estación $j$: con $n$ ciclos completos, exactamente $n$. Por lo tanto
-
-$$
-X^\top X = n \, I_r
-\qquad \Longrightarrow \qquad
-(X^\top X)^{-1} = \frac{1}{n} \, I_r
-$$
-
-— la **ortogonalidad de las columnas**, consecuencia directa de esa propiedad de las filas, es lo que permite invertir sin esfuerzo.
-
-Por otro lado, la componente $j$ de $X^\top Y$ es
-
-$$
-(X^\top Y)_j = \sum_{t} x_{tj} \, Y_t = \sum_{t \in \text{estación } j} Y_t.
-$$
-
-Combinando ambos resultados,
-
-$$
-\hat{\beta} = (X^\top X)^{-1} X^\top Y
-= \frac{1}{n} \left( \sum_{t \in 1} Y_t, \, \dots, \, \sum_{t \in r} Y_t \right)^\top
-\quad \Longrightarrow \quad
-\hat{\beta}_j = \frac{1}{n} \sum_{t \in \text{estación } j} Y_t = \bar{S}_j. \quad \blacksquare
-$$
-
-## Caso explícito, $r = 4$ estaciones y $n = 4$ ciclos
-
-$$
-X^\top X =
-\begin{pmatrix}
-4 & 0 & 0 & 0 \\
-0 & 4 & 0 & 0 \\
-0 & 0 & 4 & 0 \\
-0 & 0 & 0 & 4
-\end{pmatrix}
-= 4 \, I_4,
-$$
-
-$$
-X^\top Y =
-\begin{pmatrix}
-Y_1 + Y_5 + Y_9 + Y_{13} \\
-Y_2 + Y_6 + Y_{10} + Y_{14} \\
-Y_3 + Y_7 + Y_{11} + Y_{15} \\
-Y_4 + Y_8 + Y_{12} + Y_{16}
-\end{pmatrix}.
-$$
-
-## Dos consecuencias que el taller viene usando sin volver a probarlas
-
-1. Los coeficientes de un modelo `lm(y ~ q - 1)` **no cambian** si se elimina o añade una estación distinta: las columnas son ortogonales, sin colinealidad entre ellas.
-
-2. El modelo de "medias estacionales" del paso 4 de la Estación B es, literalmente, "**calcule el promedio de cada mes o trimestre por separado**" — con todas las limitaciones que eso conlleva, como se vio en la comparación adicional de la ruta 1.
+-   Demostración de beta_j estimado = media de la estación j:
+-   Escritura explícita de X transpuesta X y X transpuesta Y para cuatro
+    estaciones y cuatro ciclos:
+-   Paso donde se usa que cada fila de X contiene exactamente un uno:
+-   Verificación numérica e interpretación (pendientes para otra
+    sesión):
 :::
-
-```{r}
-y_q <- c(1.5, 4.3, 8.9, 12.5, 1.8, 4.5, 9.0, 12.1,
-         1.2, 4.6, 8.1, 12.9, 1.9, 5.1, 8.6, 13.2)
-q <- factor(rep(1:4, 4)); X <- model.matrix(~ q - 1)
-rbind(lm = coef(lm(y_q ~ q - 1)), medias = tapply(y_q, q, mean))
-```
-
-```{r}
-crossprod(X)
-```
-
-
-```{r}
-rbind(`X'Y` = as.vector(crossprod(X, y_q)), `sumas por estación` = tapply(y_q, q, sum))
-```
-
-
 
 # 6. Cierre: autoevaluación
 
 ::: respuesta
-# Preguntas de cierre conceptual
+**ESCRIBIR AQUÍ — Autoevaluación**
 
-**¿Qué distingue en el correlograma una serie de tipo II de una de tipo IV?**
+-   
 
-En la de tipo II los picos en $s, 2s, 3s, \dots$ se mantienen sin decaer y los rezagos intermedios son negativos y simétricos (oscila alrededor de cero); en la de tipo IV esos mismos picos aparecen montados sobre un decaimiento lento positivo y los valles intermedios no bajan de cero. Ejemplos: `nottem` con $r_6 = -0{,}88$ (tipo II puro), `UKgas` con $r_6 = 0{,}13$ (tipo IV con pedestal positivo).
+    1.  ¿Qué distingue en el correlograma una serie de tipo II de una de
+        tipo IV?:
 
-**¿Por qué el MSE dentro de muestra no sirve para elegir entre modelos anidados?**
+-   
 
-Porque la suma de cuadrados residual **nunca sube** al añadir regresores: el modelo grande siempre gana, aunque el parámetro extra solo esté ajustando ruido. Elegir por MSE dentro de muestra es elegir siempre el modelo más grande. Hace falta o una prueba que penalice el parámetro (la $F$ del paso 8) o una evaluación fuera de muestra (el origen móvil).
+    2.  ¿Por qué el MSE dentro de muestra no sirve para elegir entre
+        modelos anidados?:
 
-**¿Cuál es la única línea de `origen_movil()` que impide la fuga de información?**
+-   
 
-```r
-res[i, j] <- metodos[[j]](y[1:o], h)
-```
+    3.  ¿Cuál es la línea de evaluar_ruta() que impide la fuga de
+        información?:
 
-El corte `y[1:o]`, que entrega al método únicamente el pasado de su propio origen. Y solo protege si **todo** —parámetros incluidos— se estima dentro de esa llamada; el bloque 1 de la auditoría es precisamente una fuga que esquiva esta línea.
+-   
 
-**¿Por qué una serie puede ser estacionaria en media sin que sus incrementos sean ruido blanco?**
+    4.  ¿Por qué una serie puede ser estacionaria en media sin que sus
+        incrementos sean ruido blanco?:
 
-Porque la estacionariedad en media solo exige que $\mathbb{E}(Z_t)$ no dependa de $t$, mientras que el ruido blanco exige además incorrelación a todos los rezagos. En D.3, $Z_t = \beta_1 + u_t$ tiene media constante $\beta_1$ pero $\rho_u(1) = -1/2$.
+-   
 
-**¿Qué se reporta junto con un pronóstico, además del número?**
-
-Una medida de incertidumbre (banda o intervalo) con su naturaleza declarada —heurística o probabilística—, el horizonte y el origen a los que corresponde, el método usado y su desempeño frente a un referente ingenuo sobre los mismos orígenes, y una interpretación en las unidades del problema para quien va a tomar la decisión.
+    5.  ¿Qué se reporta junto con un pronóstico, además del número?:
 :::
 
 # Referencias de implementación
