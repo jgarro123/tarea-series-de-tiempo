@@ -2863,64 +2863,234 @@ completa.</td>
 </div>
 <div id="estación-d.-cuatro-demostraciones" class="section level1">
 <h1>5. Estación D. Cuatro demostraciones</h1>
-<p>Se reservan únicamente los enunciados y espacios de trabajo. Las
-demostraciones y sus verificaciones numéricas quedan pendientes para
-otra sesión.</p>
 <div id="d.1.-actualización-de-la-media-móvil" class="section level2">
 <h2>D.1. Actualización de la media móvil</h2>
 <p>Demostrar la identidad:</p>
 <p><span class="math display">\[
 MM_{t+1}(k)=MM_t(k)+\frac{Y_{t+1}-Y_{t+1-k}}{k}.
 \]</span></p>
-<div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — D.1</strong></p>
+</div>
+</div>
+<div id="d.1-demostración" class="section level1 respuesta">
+<h1>D.1 — Demostración</h1>
+<p>Por definición, para <span class="math inline">\(t \ge
+k\)</span>:</p>
+<p><span class="math display">\[
+MM_{t+1}(k) = \frac{1}{k}\sum_{i=0}^{k-1} Y_{t+1-i}
+= \frac{1}{k}\left( Y_{t+1} + Y_t + \cdots + Y_{t+2-k} \right),
+\]</span></p>
+<p><span class="math display">\[
+MM_t(k) = \frac{1}{k}\sum_{i=0}^{k-1} Y_{t-i}
+= \frac{1}{k}\left( Y_t + Y_{t-1} + \cdots + Y_{t+1-k} \right).
+\]</span></p>
+<p>Las dos sumas comparten exactamente los <span class="math inline">\(k-1\)</span> términos <span class="math inline">\(Y_t, \dots, Y_{t+2-k}\)</span>. Restando, todo lo
+común se cancela y sobreviven el dato que entra (<span class="math inline">\(Y_{t+1}\)</span>) y el que sale (<span class="math inline">\(Y_{t+1-k}\)</span>):</p>
+<p><span class="math display">\[
+MM_{t+1}(k) - MM_t(k) = \frac{1}{k}\left( Y_{t+1} - Y_{t+1-k} \right)
+\quad \Longrightarrow \quad
+MM_{t+1}(k) = MM_t(k) + \frac{Y_{t+1} - Y_{t+1-k}}{k}.
+\;\blacksquare
+\]</span></p>
+<div id="costo-de-actualizar-frente-a-recalcular" class="section level2">
+<h2>Costo de actualizar frente a recalcular</h2>
+<p>Actualizar cuesta <strong>tres operaciones</strong> (una resta, una
+división y una suma), <strong>independientes de <span class="math inline">\(k\)</span></strong>. Recalcular desde cero cuesta
+<span class="math inline">\(k-1\)</span> sumas y una división, es decir
+<span class="math inline">\(\mathcal{O}(k)\)</span>.</p>
 <ul>
-<li>Demostración o imagen del desarrollo manuscrito:</li>
-<li>Costo de actualizar frente a recalcular:</li>
-<li>Verificación numérica e interpretación (pendientes para otra
-sesión):</li>
+<li>Con <span class="math inline">\(k = 6\)</span> la diferencia es
+modesta.</li>
+<li>Con una ventana de, por ejemplo, <span class="math inline">\(250\)</span> observaciones el ahorro es de casi
+<strong>dos órdenes de magnitud</strong>, y es lo que permite actualizar
+una media móvil en tiempo real guardando solo el valor anterior y el
+dato que sale de la ventana.</li>
 </ul>
 </div>
 </div>
+<pre class="r"><code>media_movil &lt;- function(y, k) {
+  n &lt;- length(y); mm &lt;- rep(NA_real_, n)
+  for (t in k:n) mm[t] &lt;- mean(y[(t - k + 1):t])
+  mm
+}
+set.seed(2026); y &lt;- rnorm(60, 10, 2); k &lt;- 6
+mm  &lt;- media_movil(y, k)
+izq &lt;- mm[(k + 1):60]
+der &lt;- mm[k:59] + (y[(k + 1):60] - y[1:(60 - k)]) / k
+max(abs(izq - der))</code></pre>
+<p>[1] 1.77636e-15 [1] 1.77636e-15</p>
+<p>La diferencia máxima entre ambos lados es del orden de 10 − 15 , el
+error de redondeo de punto flotante: la identidad queda confirmada
+numéricamente.</p>
 <div id="d.2.-recursión-del-suavizamiento-exponencial" class="section level2">
 <h2>D.2. Recursión del suavizamiento exponencial</h2>
 <p>Partir de la suma infinita y demostrar:</p>
 <p><span class="math display">\[
 \widehat Y_{t+1}=\alpha Y_t+(1-\alpha)\widehat Y_t.
 \]</span></p>
-<div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — D.2</strong></p>
+</div>
+<div id="d.2-demostración" class="section level1 respuesta">
+<h1>D.2 — Demostración</h1>
+<p>Parta de</p>
+<p><span class="math display">\[
+\hat{Y}_{t+1} = \alpha \sum_{i \ge 0} (1 - \alpha)^i \, Y_{t-i}
+\]</span></p>
+<p>y separe el primer sumando (<span class="math inline">\(i =
+0\)</span>) del resto:</p>
+<p><span class="math display">\[
+\hat{Y}_{t+1} = \alpha Y_t + \alpha \sum_{i \ge 1} (1 - \alpha)^i \,
+Y_{t-i}.
+\]</span></p>
+<p>En la suma restante, el cambio de índice <span class="math inline">\(j = i - 1\)</span> da</p>
+<p><span class="math display">\[
+\alpha \sum_{i \ge 1} (1 - \alpha)^i \, Y_{t-i}
+= \alpha \sum_{j \ge 0} (1 - \alpha)^{j+1} \, Y_{(t-1)-j}
+= (1 - \alpha) \underbrace{\alpha \sum_{j \ge 0} (1 - \alpha)^j \,
+Y_{(t-1)-j}}_{=\;\hat{Y}_t \text{ (misma definición evaluada en }
+t-1\text{)}}.
+\]</span></p>
+<p>Por lo tanto</p>
+<p><span class="math display">\[
+\hat{Y}_{t+1} = \alpha Y_t + (1 - \alpha) \hat{Y}_t. \quad \blacksquare
+\]</span></p>
+<p>Nótese además que los pesos suman uno,</p>
+<p><span class="math display">\[
+\alpha \sum_{i \ge 0} (1 - \alpha)^i = \alpha \cdot \frac{1}{1 - (1 -
+\alpha)} = 1,
+\]</span></p>
+<p>así que <span class="math inline">\(\hat{Y}_{t+1}\)</span> es un
+promedio ponderado legítimo del pasado, y la convergencia de la suma
+infinita está garantizada porque <span class="math inline">\(|1 -
+\alpha| &lt; 1\)</span>.</p>
+<div id="valores-a-guardar-y-operaciones" class="section level2">
+<h2>Valores a guardar y operaciones</h2>
 <ul>
-<li>Demostración o imagen del desarrollo manuscrito:</li>
-<li>Valores que se deben guardar en cada implementación:</li>
-<li>Operaciones por nuevo pronóstico:</li>
-<li>Verificación numérica e interpretación (pendientes para otra
-sesión):</li>
+<li><p>La <strong>forma de suma</strong> exige conservar todo el pasado
+(<span class="math inline">\(t\)</span> valores en el instante <span class="math inline">\(t\)</span>) y cuesta <span class="math inline">\(\mathcal{O}(t)\)</span> operaciones para producir
+un pronóstico, un costo que <strong>crece con el
+tiempo</strong>.</p></li>
+<li><p>La <strong>forma recursiva</strong> solo necesita guardar dos
+números — el dato más reciente <span class="math inline">\(Y_t\)</span>
+y el pronóstico anterior <span class="math inline">\(\hat{Y}_t\)</span>
+— y cuesta <strong>tres operaciones</strong> (una multiplicación, un
+complemento y una suma) por pronóstico nuevo, sin importar cuán larga
+sea la historia.</p></li>
 </ul>
+<p>Es la razón de que el suavizamiento exponencial fuera un método de
+referencia en control de inventarios mucho antes de que la memoria de
+cómputo fuera barata.</p>
 </div>
 </div>
-<div id="d.3.-primera-diferencia-de-una-tendencia-lineal" class="section level2">
-<h2>D.3. Primera diferencia de una tendencia lineal</h2>
+<pre class="r"><code>ajustar_ses &lt;- function(y, a) {
+  n &lt;- length(y); yhat &lt;- rep(NA_real_, n); yhat[2] &lt;- y[1]
+  for (t in 3:n) yhat[t] &lt;- a * y[t - 1] + (1 - a) * yhat[t - 1]
+  yhat
+}
+a  &lt;- 0.3
+yh &lt;- ajustar_ses(y, a)   # y proviene del chunk D.1
+suma &lt;- sapply(3:60, function(t) {
+  i &lt;- 0:(t - 3)
+  a * sum((1 - a)^i * y[t - 1 - i]) + (1 - a)^(t - 2) * y[1]
+})
+max(abs(yh[3:60] - suma))</code></pre>
+<p>[1] 1.77636e-15</p>
+<p>[1] 1.77636e-15</p>
+<p>De nuevo la diferencia es del orden de 10 − 15 : la recursión y la
+suma infinita truncada coinciden numéricamente. ## D.3. Primera
+diferencia de una tendencia lineal</p>
 <p>Sea <span class="math inline">\(Y_t=\beta_0+\beta_1t+\varepsilon_t\)</span>, con
 <span class="math inline">\(\varepsilon_t\sim RB(0,\sigma^2)\)</span>, y
 <span class="math inline">\(Z_t=Y_t-Y_{t-1}\)</span>.</p>
-<div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — D.3</strong></p>
-<ul>
-<li><ol style="list-style-type: lower-alpha">
-<li>Demostrar la forma de Z_t y su estacionariedad en media:</li>
-</ol></li>
-<li><ol start="2" style="list-style-type: lower-alpha">
-<li>Obtener E(u_t), Var(u_t) y Cov(u_t,u_(t-h)) para h=1 y h≥2:</li>
-</ol></li>
-<li><ol start="3" style="list-style-type: lower-alpha">
-<li>Decidir si u_t es ruido blanco; calcular y explicar el signo de su
-ACF en 1:</li>
-</ol></li>
-<li><p>¿Puede haber estacionariedad en media sin ruido blanco?:</p></li>
-<li><p>Verificación numérica e interpretación (pendientes para otra
-sesión):</p></li>
-</ul>
+<div id="d.3-demostración" class="section level1 respuesta">
+<h1>D.3 — Demostración</h1>
+<div id="a-diferenciar-una-tendencia-lineal-elimina-el-nivel-y-convierte-la-pendiente-en-la-media" class="section level2">
+<h2>a) Diferenciar una tendencia lineal elimina el nivel y convierte la
+pendiente en la media</h2>
+<p>Sustituyendo <span class="math inline">\(Y_t = \beta_0 + \beta_1 t +
+\varepsilon_t\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+Z_t = Y_t - Y_{t-1}
+&amp;= \left( \beta_0 + \beta_1 t + \varepsilon_t \right)
+- \left( \beta_0 + \beta_1 (t-1) + \varepsilon_{t-1} \right) \\
+&amp;= \beta_1 + \left( \varepsilon_t - \varepsilon_{t-1} \right)
+= \beta_1 + u_t,
+\end{aligned}
+\]</span></p>
+<p>con <span class="math inline">\(u_t = \varepsilon_t -
+\varepsilon_{t-1}\)</span>. Como <span class="math inline">\(\mathbb{E}(u_t) = 0\)</span> para todo <span class="math inline">\(t\)</span>, <span class="math inline">\(\mathbb{E}(Z_t) = \beta_1\)</span> es constante,
+libre de <span class="math inline">\(t\)</span>: <span class="math inline">\(\{Z_t\}\)</span> es <strong>estacionaria en
+media</strong>. Diferenciar eliminó el nivel <span class="math inline">\(\beta_0\)</span> y convirtió la pendiente en la
+nueva media.</p>
+</div>
+<div id="b-la-diferencia-de-ruido-blanco-es-una-ma1-con-theta--1" class="section level2">
+<h2>b) La diferencia de ruido blanco es una MA(1) con <span class="math inline">\(\theta = -1\)</span></h2>
+<p>Con <span class="math inline">\(\varepsilon_t \sim \mathrm{RB}(0,
+\sigma^2)\)</span> (media cero, varianza <span class="math inline">\(\sigma^2\)</span>, incorrelacionado a todo
+rezago):</p>
+<p><span class="math display">\[
+\mathbb{E}(u_t) = \mathbb{E}(\varepsilon_t) -
+\mathbb{E}(\varepsilon_{t-1}) = 0,
+\]</span></p>
+<p><span class="math display">\[
+\operatorname{Var}(u_t)
+= \operatorname{Var}(\varepsilon_t) +
+\operatorname{Var}(\varepsilon_{t-1})
+- 2\operatorname{Cov}(\varepsilon_t, \varepsilon_{t-1})
+= \sigma^2 + \sigma^2 - 0
+= 2\sigma^2.
+\]</span></p>
+<p><strong>Caso <span class="math inline">\(h = 1\)</span>:</strong></p>
+<p><span class="math display">\[
+\begin{aligned}
+\operatorname{Cov}(u_t, u_{t-1})
+&amp;= \mathbb{E}\!\left[ (\varepsilon_t -
+\varepsilon_{t-1})(\varepsilon_{t-1} - \varepsilon_{t-2}) \right] \\
+&amp;= \underbrace{\mathbb{E}(\varepsilon_t \varepsilon_{t-1})}_{0}
+- \underbrace{\mathbb{E}(\varepsilon_t \varepsilon_{t-2})}_{0}
+- \underbrace{\mathbb{E}(\varepsilon_{t-1}^2)}_{\sigma^2}
++ \underbrace{\mathbb{E}(\varepsilon_{t-1} \varepsilon_{t-2})}_{0}
+= -\sigma^2.
+\end{aligned}
+\]</span></p>
+<p>El único término que sobrevive es <span class="math inline">\(-\mathbb{E}(\varepsilon_{t-1}^2)\)</span>: <span class="math inline">\(\varepsilon_{t-1}\)</span> aparece con signo <span class="math inline">\(+\)</span> en <span class="math inline">\(u_{t-1}\)</span> y con signo <span class="math inline">\(-\)</span> en <span class="math inline">\(u_t\)</span>.</p>
+<p><strong>Caso <span class="math inline">\(h \ge 2\)</span>:</strong>
+los índices <span class="math inline">\(\{t, t-1\}\)</span> y <span class="math inline">\(\{t-h, t-h-1\}\)</span> son disjuntos, así que los
+cuatro productos cruzados tienen esperanza cero:</p>
+<p><span class="math display">\[
+\operatorname{Cov}(u_t, u_{t-h}) = 0, \qquad h \ge 2.
+\]</span></p>
+</div>
+<div id="c-u_t-no-es-ruido-blanco-la-firma-de-la-sobrediferenciación" class="section level2">
+<h2>c) <span class="math inline">\(\{u_t\}\)</span> no es ruido blanco:
+la firma de la sobrediferenciación</h2>
+<p><span class="math inline">\(\{u_t\}\)</span> <strong>no es ruido
+blanco</strong>: tiene media cero y varianza constante, pero</p>
+<p><span class="math display">\[
+\operatorname{Cov}(u_t, u_{t-1}) = -\sigma^2 \neq 0.
+\]</span></p>
+<p>Su autocorrelación de orden uno es</p>
+<p><span class="math display">\[
+\rho_u(1) = \frac{-\sigma^2}{2\sigma^2} = -\tfrac{1}{2},
+\]</span></p>
+<p>negativa porque cada <span class="math inline">\(\varepsilon_{t-1}\)</span> se usa dos veces con
+signos opuestos: un <span class="math inline">\(u_{t-1}\)</span> grande
+(por un <span class="math inline">\(\varepsilon_{t-1}\)</span> alto)
+empuja a <span class="math inline">\(u_t\)</span> hacia lo negativo. Es
+la <strong>sobrediferenciación clásica</strong>: diferenciar una
+tendencia lineal induce una MA(1) con <span class="math inline">\(\theta
+= -1\)</span>, y <span class="math inline">\(|\rho_u(1)| = 1/2\)</span>
+es, de hecho, el máximo posible para cualquier MA(1).</p>
+</div>
+<div id="estacionariedad-en-media-sin-ruido-blanco-sí." class="section level2">
+<h2>¿Estacionariedad en media sin ruido blanco? Sí.</h2>
+<p>La <strong>estacionariedad en media</strong> solo exige que <span class="math inline">\(\mathbb{E}(Z_t)\)</span> no dependa de <span class="math inline">\(t\)</span>; ser <strong>ruido blanco</strong>
+exige además incorrelación a todos los rezagos. Aquí <span class="math inline">\(\{Z_t\}\)</span> cumple lo primero y no lo
+segundo.</p>
+<p>La consecuencia práctica: tras diferenciar una serie con tendencia
+determinística, el correlograma de la diferencia <strong>no debería
+salir limpio</strong> — un <span class="math inline">\(\rho_u(1) \approx
+-0{,}5\)</span> es la firma de haber diferenciado algo que ya era
+estacionario alrededor de una recta.</p>
 </div>
 </div>
 <div id="d.4.-ficticias-y-medias-estacionales" class="section level2">
@@ -2938,7 +3108,6 @@ uno:</li>
 <li>Verificación numérica e interpretación (pendientes para otra
 sesión):</li>
 </ul>
-</div>
 </div>
 </div>
 <div id="cierre-autoevaluación" class="section level1">

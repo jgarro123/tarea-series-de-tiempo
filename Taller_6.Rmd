@@ -1142,10 +1142,6 @@ La siguiente tabla sistematiza los cuatro bloques con defectos metodológicos id
 | 4 | La afirmación "el método gana: su MASE es menor que uno", con el denominador del ingenuo calculado sobre `y[1:min(origenes)]` en vez de sobre los mismos orígenes 80:107 | **Denominador de otro tramo de la serie**, exactamente el error que advierte el paso 5: el numerador se mide sobre los trimestres 81–108 y el denominador sobre los trimestres 1–80, que en `UKgas` son prácticamente otra serie — el nivel medio de 81–108 es varias veces el de 1–80, y la amplitud estacional crece en la misma proporción (paso 1 de la ruta 2, correlación nivel-amplitud $= 0{,}99$). | El MASE de 0,92 **no mide qué tan bueno es el método**: mezcla la calidad del método con el hecho de que la serie creció mucho entre los dos tramos, y el error absoluto del ingenuo en unidades de los años sesenta es mucho menor que en unidades de los años ochenta, aunque proporcionalmente el ingenuo se equivoque parecido en ambas épocas. | Reportar el MASE con el ingenuo estacional calculado sobre **los mismos 28 orígenes** (80 a 107) del método que se evalúa, como una fila más de la tabla de la ruta 2 (paso 5) — con eso, la comparación entre HW aditivo y el ingenuo da una razón de MAD de $37{,}23 / 39{,}96 = 0{,}932$, una ventaja real pero bastante más modesta que la que sugiere el cálculo con el denominador equivocado, y acompañada de RMSE y MAPE para una lectura completa. |
 # 5. Estación D. Cuatro demostraciones
 
-Se reservan únicamente los enunciados y espacios de trabajo. Las
-demostraciones y sus verificaciones numéricas quedan pendientes para
-otra sesión.
-
 ## D.1. Actualización de la media móvil
 
 Demostrar la identidad:
@@ -1155,13 +1151,56 @@ MM_{t+1}(k)=MM_t(k)+\frac{Y_{t+1}-Y_{t+1-k}}{k}.
 $$
 
 ::: respuesta
-**ESCRIBIR AQUÍ — D.1**
+# D.1 — Demostración
 
--   Demostración o imagen del desarrollo manuscrito:
--   Costo de actualizar frente a recalcular:
--   Verificación numérica e interpretación (pendientes para otra
-    sesión):
+Por definición, para $t \ge k$:
+
+$$
+MM_{t+1}(k) = \frac{1}{k}\sum_{i=0}^{k-1} Y_{t+1-i}
+= \frac{1}{k}\left( Y_{t+1} + Y_t + \cdots + Y_{t+2-k} \right),
+$$
+
+$$
+MM_t(k) = \frac{1}{k}\sum_{i=0}^{k-1} Y_{t-i}
+= \frac{1}{k}\left( Y_t + Y_{t-1} + \cdots + Y_{t+1-k} \right).
+$$
+
+Las dos sumas comparten exactamente los $k-1$ términos $Y_t, \dots, Y_{t+2-k}$. Restando, todo lo común se cancela y sobreviven el dato que entra ($Y_{t+1}$) y el que sale ($Y_{t+1-k}$):
+
+$$
+MM_{t+1}(k) - MM_t(k) = \frac{1}{k}\left( Y_{t+1} - Y_{t+1-k} \right)
+\quad \Longrightarrow \quad
+MM_{t+1}(k) = MM_t(k) + \frac{Y_{t+1} - Y_{t+1-k}}{k}.
+\;\blacksquare
+$$
+
+## Costo de actualizar frente a recalcular
+
+Actualizar cuesta **tres operaciones** (una resta, una división y una suma), **independientes de $k$**. Recalcular desde cero cuesta $k-1$ sumas y una división, es decir $\mathcal{O}(k)$.
+
+- Con $k = 6$ la diferencia es modesta.
+- Con una ventana de, por ejemplo, $250$ observaciones el ahorro es de casi **dos órdenes de magnitud**, y es lo que permite actualizar una media móvil en tiempo real guardando solo el valor anterior y el dato que sale de la ventana.
 :::
+```{r}
+media_movil <- function(y, k) {
+  n <- length(y); mm <- rep(NA_real_, n)
+  for (t in k:n) mm[t] <- mean(y[(t - k + 1):t])
+  mm
+}
+set.seed(2026); y <- rnorm(60, 10, 2); k <- 6
+mm  <- media_movil(y, k)
+izq <- mm[(k + 1):60]
+der <- mm[k:59] + (y[(k + 1):60] - y[1:(60 - k)]) / k
+max(abs(izq - der))
+
+```
+[1] 1.77636e-15
+
+La diferencia máxima entre ambos lados es del orden de 
+10
+−
+15
+, el error de redondeo de punto flotante: la identidad queda confirmada numéricamente.
 
 ## D.2. Recursión del suavizamiento exponencial
 
@@ -1172,41 +1211,158 @@ $$
 $$
 
 ::: respuesta
-**ESCRIBIR AQUÍ — D.2**
+# D.2 — Demostración
 
--   Demostración o imagen del desarrollo manuscrito:
--   Valores que se deben guardar en cada implementación:
--   Operaciones por nuevo pronóstico:
--   Verificación numérica e interpretación (pendientes para otra
-    sesión):
+Parta de
+
+$$
+\hat{Y}_{t+1} = \alpha \sum_{i \ge 0} (1 - \alpha)^i \, Y_{t-i}
+$$
+
+y separe el primer sumando ($i = 0$) del resto:
+
+$$
+\hat{Y}_{t+1} = \alpha Y_t + \alpha \sum_{i \ge 1} (1 - \alpha)^i \, Y_{t-i}.
+$$
+
+En la suma restante, el cambio de índice $j = i - 1$ da
+
+$$
+\alpha \sum_{i \ge 1} (1 - \alpha)^i \, Y_{t-i}
+= \alpha \sum_{j \ge 0} (1 - \alpha)^{j+1} \, Y_{(t-1)-j}
+= (1 - \alpha) \underbrace{\alpha \sum_{j \ge 0} (1 - \alpha)^j \, Y_{(t-1)-j}}_{=\;\hat{Y}_t \text{ (misma definición evaluada en } t-1\text{)}}.
+$$
+
+Por lo tanto
+
+$$
+\hat{Y}_{t+1} = \alpha Y_t + (1 - \alpha) \hat{Y}_t. \quad \blacksquare
+$$
+
+Nótese además que los pesos suman uno,
+
+$$
+\alpha \sum_{i \ge 0} (1 - \alpha)^i = \alpha \cdot \frac{1}{1 - (1 - \alpha)} = 1,
+$$
+
+así que $\hat{Y}_{t+1}$ es un promedio ponderado legítimo del pasado, y la convergencia de la suma infinita está garantizada porque $|1 - \alpha| < 1$.
+
+## Valores a guardar y operaciones
+
+- La **forma de suma** exige conservar todo el pasado ($t$ valores en el instante $t$) y cuesta $\mathcal{O}(t)$ operaciones para producir un pronóstico, un costo que **crece con el tiempo**.
+
+- La **forma recursiva** solo necesita guardar dos números — el dato más reciente $Y_t$ y el pronóstico anterior $\hat{Y}_t$ — y cuesta **tres operaciones** (una multiplicación, un complemento y una suma) por pronóstico nuevo, sin importar cuán larga sea la historia.
+
+Es la razón de que el suavizamiento exponencial fuera un método de referencia en control de inventarios mucho antes de que la memoria de cómputo fuera barata.
 :::
+```{r}
+ajustar_ses <- function(y, a) {
+  n <- length(y); yhat <- rep(NA_real_, n); yhat[2] <- y[1]
+  for (t in 3:n) yhat[t] <- a * y[t - 1] + (1 - a) * yhat[t - 1]
+  yhat
+}
+a  <- 0.3
+yh <- ajustar_ses(y, a)   # y proviene del chunk D.1
+suma <- sapply(3:60, function(t) {
+  i <- 0:(t - 3)
+  a * sum((1 - a)^i * y[t - 1 - i]) + (1 - a)^(t - 2) * y[1]
+})
+max(abs(yh[3:60] - suma))
 
+```
+
+
+De nuevo la diferencia es del orden de 
+10
+−
+15
+: la recursión y la suma infinita truncada coinciden numéricamente.
 ## D.3. Primera diferencia de una tendencia lineal
 
 Sea $Y_t=\beta_0+\beta_1t+\varepsilon_t$, con
 $\varepsilon_t\sim RB(0,\sigma^2)$, y $Z_t=Y_t-Y_{t-1}$.
 
 ::: respuesta
-**ESCRIBIR AQUÍ — D.3**
+# D.3 — Demostración
 
--   
+## a) Diferenciar una tendencia lineal elimina el nivel y convierte la pendiente en la media
 
-    a)  Demostrar la forma de Z_t y su estacionariedad en media:
+Sustituyendo $Y_t = \beta_0 + \beta_1 t + \varepsilon_t$:
 
--   
+$$
+\begin{aligned}
+Z_t = Y_t - Y_{t-1}
+&= \left( \beta_0 + \beta_1 t + \varepsilon_t \right)
+ - \left( \beta_0 + \beta_1 (t-1) + \varepsilon_{t-1} \right) \\
+&= \beta_1 + \left( \varepsilon_t - \varepsilon_{t-1} \right)
+ = \beta_1 + u_t,
+\end{aligned}
+$$
 
-    b)  Obtener E(u_t), Var(u_t) y Cov(u_t,u\_(t-h)) para h=1 y h≥2:
+con $u_t = \varepsilon_t - \varepsilon_{t-1}$. Como $\mathbb{E}(u_t) = 0$ para todo $t$, $\mathbb{E}(Z_t) = \beta_1$ es constante, libre de $t$: $\{Z_t\}$ es **estacionaria en media**. Diferenciar eliminó el nivel $\beta_0$ y convirtió la pendiente en la nueva media.
 
--   
+## b) La diferencia de ruido blanco es una MA(1) con $\theta = -1$
 
-    c)  Decidir si u_t es ruido blanco; calcular y explicar el signo de
-        su ACF en 1:
+Con $\varepsilon_t \sim \mathrm{RB}(0, \sigma^2)$ (media cero, varianza $\sigma^2$, incorrelacionado a todo rezago):
 
--   ¿Puede haber estacionariedad en media sin ruido blanco?:
+$$
+\mathbb{E}(u_t) = \mathbb{E}(\varepsilon_t) - \mathbb{E}(\varepsilon_{t-1}) = 0,
+$$
 
--   Verificación numérica e interpretación (pendientes para otra
-    sesión):
+$$
+\operatorname{Var}(u_t)
+= \operatorname{Var}(\varepsilon_t) + \operatorname{Var}(\varepsilon_{t-1})
+ - 2\operatorname{Cov}(\varepsilon_t, \varepsilon_{t-1})
+= \sigma^2 + \sigma^2 - 0
+= 2\sigma^2.
+$$
+
+**Caso $h = 1$:**
+
+$$
+\begin{aligned}
+\operatorname{Cov}(u_t, u_{t-1})
+&= \mathbb{E}\!\left[ (\varepsilon_t - \varepsilon_{t-1})(\varepsilon_{t-1} - \varepsilon_{t-2}) \right] \\
+&= \underbrace{\mathbb{E}(\varepsilon_t \varepsilon_{t-1})}_{0}
+ - \underbrace{\mathbb{E}(\varepsilon_t \varepsilon_{t-2})}_{0}
+ - \underbrace{\mathbb{E}(\varepsilon_{t-1}^2)}_{\sigma^2}
+ + \underbrace{\mathbb{E}(\varepsilon_{t-1} \varepsilon_{t-2})}_{0}
+ = -\sigma^2.
+\end{aligned}
+$$
+
+El único término que sobrevive es $-\mathbb{E}(\varepsilon_{t-1}^2)$: $\varepsilon_{t-1}$ aparece con signo $+$ en $u_{t-1}$ y con signo $-$ en $u_t$.
+
+**Caso $h \ge 2$:** los índices $\{t, t-1\}$ y $\{t-h, t-h-1\}$ son disjuntos, así que los cuatro productos cruzados tienen esperanza cero:
+
+$$
+\operatorname{Cov}(u_t, u_{t-h}) = 0, \qquad h \ge 2.
+$$
+
+## c) $\{u_t\}$ no es ruido blanco: la firma de la sobrediferenciación
+
+$\{u_t\}$ **no es ruido blanco**: tiene media cero y varianza constante, pero
+
+$$
+\operatorname{Cov}(u_t, u_{t-1}) = -\sigma^2 \neq 0.
+$$
+
+Su autocorrelación de orden uno es
+
+$$
+\rho_u(1) = \frac{-\sigma^2}{2\sigma^2} = -\tfrac{1}{2},
+$$
+
+negativa porque cada $\varepsilon_{t-1}$ se usa dos veces con signos opuestos: un $u_{t-1}$ grande (por un $\varepsilon_{t-1}$ alto) empuja a $u_t$ hacia lo negativo. Es la **sobrediferenciación clásica**: diferenciar una tendencia lineal induce una MA(1) con $\theta = -1$, y $|\rho_u(1)| = 1/2$ es, de hecho, el máximo posible para cualquier MA(1).
+
+## ¿Estacionariedad en media sin ruido blanco? Sí.
+
+La **estacionariedad en media** solo exige que $\mathbb{E}(Z_t)$ no dependa de $t$; ser **ruido blanco** exige además incorrelación a todos los rezagos. Aquí $\{Z_t\}$ cumple lo primero y no lo segundo.
+
+La consecuencia práctica: tras diferenciar una serie con tendencia determinística, el correlograma de la diferencia **no debería salir limpio** — un $\rho_u(1) \approx -0{,}5$ es la firma de haber diferenciado algo que ya era estacionario alrededor de una recta.
+
 :::
+
 
 ## D.4. Ficticias y medias estacionales
 
