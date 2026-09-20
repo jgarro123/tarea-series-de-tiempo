@@ -430,14 +430,7 @@ Con base en los correlogramas, los gráficos de las series y las autocorrelacion
 
 Los cuatro valores de $Q$ de la prueba Ljung-Box con $m=24$ rezagos (203, 2342, 953 y 237) superan ampliamente el valor crítico $\chi^2_{24;\,0.95} = 36.42$. Esto es coherente con lo que se observa en los correlogramas: **ninguna de las cuatro series es ruido blanco**. La prueba, sin embargo, no distingue entre tendencia, estacionalidad o ambos — solo confirma la presencia de estructura. Esa distinción es justamente la que hace esta tabla de decisión con base en la forma del correlograma.
 
-## A.4. Decaimiento lento
 
-<div class="respuesta">
-
----
-title: "A.4 — Dos decaimientos lentos, dos causas"
-format: html
----
 
 ## A.4 — Dos decaimientos lentos, dos causas
 
