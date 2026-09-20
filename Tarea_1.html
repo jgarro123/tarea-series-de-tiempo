@@ -11,7 +11,7 @@
 
 <meta name="author" content="Juan David Garro" />
 
-<meta name="date" content="2026-09-15" />
+<meta name="date" content="2026-09-19" />
 
 <title>Tarea #1</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Tarea #1</h1>
 <h4 class="author">Juan David Garro</h4>
-<h4 class="date">2026-09-15</h4>
+<h4 class="date">2026-09-19</h4>
 
 </div>
 
@@ -1117,59 +1117,38 @@ knitr::kable(tabla_estacional, digits = 3, row.names = FALSE,
 los picos estacionales</h3>
 <table>
 <colgroup>
-<col width="14%" />
-<col width="47%" />
-<col width="38%" />
+<col width="4%" />
+<col width="39%" />
+<col width="19%" />
+<col width="10%" />
+<col width="25%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th align="left">Aspecto</th>
-<th align="left">Ruta 1: Nottingham, tipo II</th>
-<th align="left">Ruta 2: UKgas, tipo IV</th>
+<th align="left">Serie</th>
+<th align="left">¿Los picos en múltiplos de <span class="math inline">\(s\)</span> decaen o se mantienen?</th>
+<th align="left">Evidencia del correlograma</th>
+<th align="center">Tipo de serie</th>
+<th align="left">Diferencia entre tipo II y tipo IV</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Valores de los picos</td>
-<td align="left">0.884, 0.866, 0.810 y 0.762</td>
-<td align="left">0.902, 0.806, 0.720 y 0.633</td>
+<td align="left">Temperatura en Nottingham</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
 </tr>
 <tr class="even">
-<td align="left">Comportamiento en múltiplos de <span class="math inline">\(s\)</span></td>
-<td align="left">Decaen lentamente y se mantienen altos</td>
-<td align="left">Decaen de forma más clara, aunque siguen siendo
-positivos</td>
-</tr>
-<tr class="odd">
-<td align="left">Comportamiento entre los picos</td>
-<td align="left">La ACF oscila entre valores positivos y negativos
-siguiendo el patrón estacional</td>
-<td align="left">La ACF permanece principalmente positiva y los picos
-estacionales se superponen a un descenso lento</td>
-</tr>
-<tr class="even">
-<td align="left">Tendencia</td>
-<td align="left">No presenta una tendencia sostenida</td>
-<td align="left">Presenta una tendencia creciente</td>
-</tr>
-<tr class="odd">
-<td align="left">Rasgo que la distingue</td>
-<td align="left">La estacionalidad domina el correlograma</td>
-<td align="left">La tendencia mantiene correlaciones positivas, además
-de los picos producidos por la estacionalidad</td>
+<td align="left">Consumo de gas del Reino Unido</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="center"></td>
+<td align="left"></td>
 </tr>
 </tbody>
 </table>
-<p>Los picos estacionales de las dos series disminuyen a medida que
-aumenta el múltiplo de <span class="math inline">\(s\)</span>. Sin
-embargo, en Nottingham la disminución es leve y los picos se mantienen
-relativamente altos. En UKgas el descenso es más marcado.</p>
-<p>Una serie <strong>tipo II</strong> tiene estacionalidad, pero no
-tendencia; por eso su correlograma presenta una oscilación periódica,
-con picos positivos en los múltiplos de <span class="math inline">\(s\)</span> y valores negativos en otros rezagos.
-Una serie <strong>tipo IV</strong> combina tendencia y estacionalidad;
-por eso conserva autocorrelaciones positivas en muchos rezagos y muestra
-los picos estacionales sobre un patrón de descenso lento.</p>
 </div>
 <div id="prueba-de-ljungbox-para-las-dos-rutas" class="section level3" number="2.7.5">
 <h3><span class="header-section-number">2.7.5</span> Prueba de Ljung–Box
