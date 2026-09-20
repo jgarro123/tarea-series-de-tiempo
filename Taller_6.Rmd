@@ -1,0 +1,922 @@
+---
+title: "Taller de la Clase 6"
+subtitle: "Repaso integrador de las clases 1 a 5"
+author:
+  - "Juan David Garro Arboleda — jgarro@unal.edu.co"
+  - "Mariana Castano Celis — mcastanoce@unal.edu.co"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: false
+    code_folding: show
+    theme: readable
+---
+
+```{r setup, include=FALSE}
+# knitr controla la presentación de los bloques y sus resultados.
+# echo = TRUE conserva el código para poder leerlo junto con sus comentarios.
+# Los avisos se mantienen visibles para detectar dificultades durante el ajuste.
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = FALSE, results = "asis",
+                      fig.width = 9, fig.height = 5)
+options(digits = 6)
+```
+
+<style>
+.respuesta {border: 2px dashed #64748b; padding: 14px; margin: 18px 0; background: #f8fafc; min-height: 95px;}
+</style>
+
+# Guía de trabajo
+
+Este documento desarrolla el código de ambas rutas. Las cajas **ESCRIBIR AQUÍ**
+y las celdas **[Completar]** están reservadas para las respuestas de los autores.
+Los comentarios del código describen las operaciones; las interpretaciones se escriben
+en los espacios correspondientes.
+
+La estación C conserva los fragmentos del enunciado como material para auditar.
+La estación D queda reservada para una próxima sesión. Pueden transcribir allí
+sus demostraciones o incorporar sus imágenes.
+
+# 1. Utilidades y decisiones de implementación
+
+Se utilizan R base y el paquete oficial `stats`; `knitr` y `rmarkdown` presentan
+y renderizan el informe. Las funciones auxiliares siguientes organizan llamadas
+a esas bibliotecas y cálculos elementales. No se necesita el código de clases anteriores.
+
+- Nivel de significancia de trabajo: 0.05.
+- Bandas del correlograma: aproximación de ruido blanco y aproximación de Bartlett, al 95 %.
+- Errores: valor observado menos pronóstico.
+- MAD se usa como error absoluto medio, no como la función `mad()` de R.
+- La evaluación utiliza ventana de entrenamiento creciente y horizonte uno.
+- En la regresión logarítmica se usa retransformación con el factor
+  `mean(exp(residuals(ajuste)))`, calculado únicamente con el entrenamiento.
+- Ljung–Box en errores de origen móvil usa `fitdf = 0`: no son los residuos de
+  un único ajuste sobre esa secuencia. Es un diagnóstico aproximado, especialmente
+  después de seleccionar al ganador con los mismos errores.
+- En los residuos del modelo de medias estacionales se sigue el enunciado:
+  `lag = 24`, `fitdf = 12`.
+- Jarque–Bera se calcula con momentos y `pchisq()`; su referencia es asintótica.
+  Se muestra solo con al menos 40 errores, umbral operativo que no garantiza
+  por sí mismo una buena aproximación en muestras pequeñas.
+
+```{r utilidades}
+# mostrar_tabla recibe un data.frame y lo presenta como tabla Markdown.
+# digits fija los decimales y row.names evita una columna extra de índices.
+mostrar_tabla <- function(tabla) {
+  cat("\n\n")
+  print(knitr::kable(tabla, digits = 4, row.names = FALSE))
+  cat("\n\n")
+}
+
+# graficar_acf recibe valores y un máximo de rezagos.
+# acf calcula las correlaciones sin dibujar su gráfica automática.
+# La primera posición es el rezago cero y se excluye con [-1].
+graficar_acf <- function(serie, m, titulo) {
+  valores <- as.numeric(serie)
+  n <- length(valores)
+  r <- as.numeric(stats::acf(valores, lag.max = m, plot = FALSE)$acf)[-1]
+  rezagos <- seq_along(r)
+  blanca <- stats::qnorm(0.975) / sqrt(n)
+  # La suma para el rezago k contiene los cuadrados de r_1 hasta r_(k-1).
+  previas <- c(0, cumsum(r^2))[seq_along(r)]
+  bartlett <- stats::qnorm(0.975) * sqrt((1 + 2 * previas) / n)
+  plot(rezagos, r, type = "h",
+       ylim = range(-1, 1, -bartlett, bartlett),
+       main = titulo, xlab = "Rezago (observaciones)", ylab = "ACF")
+  abline(h = 0)
+  abline(h = c(-blanca, blanca), col = "blue", lty = 2)
+  lines(rezagos, bartlett, col = "red", lty = 3)
+  lines(rezagos, -bartlett, col = "red", lty = 3)
+  legend("topright", c("Ruido blanco", "Bartlett"),
+         col = c("blue", "red"), lty = c(2, 3), cex = 0.8)
+}
+
+# resultado_ljung reúne los resultados de Box.test en una sola fila.
+# lag es el máximo rezago y fitdf indica cuántos grados de libertad se restan.
+# El valor p se imprime con un límite pequeño para evitar presentar cero exacto.
+resultado_ljung <- function(valores, m, p = 0) {
+  prueba <- stats::Box.test(
+    x = as.numeric(valores), lag = m, type = "Ljung-Box", fitdf = p
+  )
+  data.frame(n = length(valores), m = m, parametros_descontados = p,
+             gl = unname(prueba$parameter), Q = unname(prueba$statistic),
+             valor_p = format.pval(prueba$p.value, digits = 4, eps = 1e-12))
+}
+
+# pronosticar_metodo ajusta un candidato con los datos que recibe.
+# entrenamiento es el único vector disponible al modelo; h es el horizonte.
+# s indica cuántas observaciones conforman un ciclo estacional.
+pronosticar_metodo <- function(entrenamiento, s, metodo, h = 1) {
+  n <- length(entrenamiento)
+  futuro <- n + seq_len(h)
+  if (metodo == "Ingenuo estacional") {
+    # Se repite el último ciclo disponible tantas veces como haga falta.
+    return(rep(tail(entrenamiento, s), length.out = h))
+  }
+  if (metodo %in% c("HW aditivo", "HW multiplicativo")) {
+    tipo <- if (metodo == "HW aditivo") "additive" else "multiplicative"
+    # ts conserva la frecuencia; HoltWinters estima las constantes con
+    # este entrenamiento. predict obtiene h observaciones futuras.
+    ajuste <- stats::HoltWinters(
+      x = stats::ts(entrenamiento, frequency = s), seasonal = tipo
+    )
+    return(as.numeric(stats::predict(ajuste, n.ahead = h)))
+  }
+  # t es la posición temporal y q identifica la estación mediante un factor.
+  # Los mismos niveles de q se usan al entrenar y al pronosticar.
+  datos <- data.frame(
+    y = entrenamiento, t = seq_len(n),
+    q = factor((seq_len(n) - 1) %% s + 1, levels = seq_len(s))
+  )
+  nuevos <- data.frame(
+    t = futuro, q = factor((futuro - 1) %% s + 1, levels = seq_len(s))
+  )
+  if (metodo == "Medias estacionales") {
+    ajuste <- stats::lm(y ~ q - 1, data = datos)
+  } else if (metodo == "Tendencia y ficticias") {
+    ajuste <- stats::lm(y ~ t + q, data = datos)
+  } else if (metodo == "Log tendencia y ficticias") {
+    ajuste <- stats::lm(log(y) ~ t + q, data = datos)
+    # exp devuelve la escala original y el factor corrige la retransformación.
+    # Tanto los residuos como el factor proceden solo del entrenamiento.
+    factor_retransformacion <- mean(exp(stats::residuals(ajuste)))
+    return(as.numeric(exp(stats::predict(ajuste, newdata = nuevos))) *
+             factor_retransformacion)
+  } else {
+    stop("Nombre de método no reconocido.")
+  }
+  as.numeric(stats::predict(ajuste, newdata = nuevos))
+}
+
+# evaluar_ruta crea una matriz: filas = orígenes; columnas = candidatos.
+# En cada origen o se reestiman los modelos con y[1:o] y se predice y[o+1].
+# No se eliminan fallos ni observaciones por método: eso alteraría la comparación.
+evaluar_ruta <- function(y, s, origenes, metodos) {
+  pronosticos <- matrix(NA_real_, nrow = length(origenes),
+                       ncol = length(metodos),
+                       dimnames = list(origenes, metodos))
+  for (i in seq_along(origenes)) {
+    o <- origenes[i]
+    entrenamiento <- y[seq_len(o)]
+    for (j in seq_along(metodos)) {
+      pronosticos[i, j] <- pronosticar_metodo(
+        entrenamiento, s, metodos[j], h = 1
+      )
+    }
+  }
+  observados <- y[origenes + 1]
+  stopifnot(all(is.finite(pronosticos)), all(observados != 0))
+  errores <- observados - pronosticos
+  medidas <- data.frame()
+  for (j in seq_along(metodos)) {
+    e <- errores[, j]
+    medidas <- rbind(medidas, data.frame(
+      Metodo = metodos[j], Origenes = length(origenes),
+      RMSE = sqrt(mean(e^2)), MAD = mean(abs(e)),
+      MAPE_porcentaje = 100 * mean(abs(e / observados))
+    ))
+  }
+  medidas <- medidas[order(medidas$RMSE), ]
+  rownames(medidas) <- NULL
+  list(tabla = medidas, errores = errores, pronosticos = pronosticos,
+       observados = observados, ganador = medidas$Metodo[1])
+}
+```
+
+# 2. Estación A. Diagnóstico: cuatro series, cuatro patrones
+
+```{r series-a}
+# Se conservan los objetos ts originales para mostrar años en los gráficos.
+# as.numeric se usa solo cuando interesa la posición de cada observación.
+series_A <- list(
+  "Nivel del lago Hurón" = LakeHuron,
+  "Temperatura en Nottingham" = nottem,
+  "Población de Australia" = austres,
+  "Muertes accidentales" = USAccDeaths
+)
+```
+
+## A.1. Gráficas, correlogramas y autocorrelaciones
+
+```{r a1, fig.width=10, fig.height=4}
+tabla_A <- data.frame()
+for (nombre in names(series_A)) {
+  serie <- series_A[[nombre]]
+  n <- length(serie)
+  s <- frequency(serie)
+  # mfrow organiza la serie a la izquierda y su ACF a la derecha.
+  par(mfrow = c(1, 2))
+  plot(serie, main = nombre, xlab = "Año", ylab = "Valor observado")
+  graficar_acf(serie, floor(n / 4), paste("ACF:", nombre))
+  r <- as.numeric(stats::acf(as.numeric(serie),
+                             lag.max = 2 * s, plot = FALSE)$acf)
+  tabla_A <- rbind(tabla_A, data.frame(
+    Serie = nombre, T = n, s = s, r1 = r[2], rs = r[s + 1],
+    r2s = r[2 * s + 1]
+  ))
+}
+par(mfrow = c(1, 1))
+mostrar_tabla(tabla_A)
+```
+
+Para la serie anual, s = 1 representa su frecuencia; no implica afirmar estacionalidad anual.
+
+## A.2. Ljung–Box con 24 rezagos
+
+```{r a2}
+tabla_A_ljung <- data.frame()
+for (nombre in names(series_A)) {
+  tabla_A_ljung <- rbind(tabla_A_ljung, cbind(
+    Serie = nombre, resultado_ljung(series_A[[nombre]], m = 24)
+  ))
+}
+mostrar_tabla(tabla_A_ljung)
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — A.2**
+
+- Hipótesis nula y alternativa:
+- Nivel de significancia y regla de decisión:
+- ¿Por qué rechaza en las cuatro series?
+- ¿Por qué no permite distinguir los cuatro patrones?
+
+</div>
+
+## A.3. Tabla de decisión
+
+| Serie | Patrón | Evidencia del correlograma | Familia de técnicas |
+|:--|:--|:--|:--|
+| Nivel del lago Hurón | [Completar] | [Completar] | [Completar] |
+| Temperatura en Nottingham | [Completar] | [Completar] | [Completar] |
+| Población de Australia | [Completar] | [Completar] | [Completar] |
+| Muertes accidentales | [Completar] | [Completar] | [Completar] |
+
+## A.4. Decaimiento lento
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — A.4**
+
+- Serie cuyo decaimiento lento procede de una tendencia:
+- Serie cuyo decaimiento lento no procede de una tendencia:
+- Justificación mediante un argumento distinto del correlograma:
+
+</div>
+
+# 3. Estación B. Protocolo completo para ambas rutas
+
+```{r preparar-rutas}
+# Cada entrada contiene la serie, su frecuencia, sus orígenes y candidatos.
+# Los orígenes son índices de la última observación conocida.
+# 200:239 proporciona 40 pronósticos de Nottingham; 80:107, 28 de UKgas.
+# La segunda selección permite también consultar el tramo citado en C.4.
+rutas <- list(
+  ruta1 = list(
+    serie = nottem, s = 12, origenes = 200:239,
+    metodos = c("Ingenuo estacional", "Medias estacionales",
+                "Tendencia y ficticias", "HW aditivo")
+  ),
+  ruta2 = list(
+    serie = UKgas, s = 4, origenes = 80:107,
+    metodos = c("Ingenuo estacional", "Tendencia y ficticias",
+                "Log tendencia y ficticias", "HW aditivo", "HW multiplicativo")
+  )
+)
+evaluaciones <- list()
+```
+
+## Ruta 1. Temperatura mensual de Nottingham
+
+### Paso 1. Graficar y nombrar el patrón
+
+```{r r1-paso1}
+# Se seleccionan los datos de esta ruta y se conserva su calendario.
+ruta <- rutas$ruta1
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+plot(serie, main = "Temperatura en Nottingham",
+     xlab = "Año", ylab = "Temperatura (°F)")
+```
+
+| Componente | ¿Se observa? | Evidencia |
+|:--|:--|:--|
+| Nivel | [Completar] | [Completar] |
+| Tendencia | [Completar] | [Completar] |
+| Estacionalidad | [Completar] | [Completar] |
+| Ciclo | [Completar] | [Completar] |
+| Episodios atípicos | [Completar] | [Completar] |
+
+### Paso 2. Correlograma y prueba
+
+```{r r1-paso2}
+graficar_acf(y, floor(length(y) / 4), "Correlograma de la ruta 1")
+# Se solicitan cuatro múltiplos del período estacional.
+# Se suma 1 para saltar la posición del rezago cero.
+rezagos <- s * 1:4
+r <- as.numeric(stats::acf(y, lag.max = 4 * s, plot = FALSE)$acf)
+mostrar_tabla(data.frame(Rezago = rezagos, ACF = r[rezagos + 1]))
+mostrar_tabla(resultado_ljung(y, m = 4 * s))
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, paso 2**
+
+- Hipótesis, significancia y regla de decisión:
+- Interpretación de Ljung–Box:
+- ¿Los picos en múltiplos de s decaen o se mantienen?:
+- ¿Qué distingue a los tipos II y IV?:
+
+</div>
+
+### Paso 3. Partir la muestra
+
+```{r r1-paso3}
+# El origen o usa los primeros o datos y evalúa exclusivamente el dato o+1.
+origenes <- ruta$origenes
+mostrar_tabla(data.frame(
+  Primer_origen = min(origenes), Ultimo_origen = max(origenes),
+  Numero_origenes = length(origenes), Horizonte = 1,
+  Primer_dato_evaluado = min(origenes) + 1,
+  Ultimo_dato_evaluado = max(origenes) + 1
+))
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, paso 3**
+
+- Descripción y justificación del esquema de evaluación:
+
+</div>
+
+### Paso 4. Ajustar candidatos en cada origen
+
+```{r r1-paso4}
+# evaluar_ruta reestima todos los candidatos en cada origen.
+# Los resultados quedan guardados para comparar, validar y pronosticar.
+evaluaciones$ruta1 <- evaluar_ruta(y, s, origenes, ruta$metodos)
+evaluacion <- evaluaciones$ruta1
+mostrar_tabla(data.frame(Metodo = ruta$metodos))
+```
+
+### Paso 5. Comparar sobre los mismos orígenes
+
+```{r r1-paso5}
+mostrar_tabla(evaluacion$tabla)
+# Se conservan métricas numéricas para calcular la diferencia con el referente.
+# Una reducción positiva significa un error menor respecto al ingenuo estacional.
+tabla <- evaluacion$tabla
+referente <- tabla[tabla$Metodo == "Ingenuo estacional", ]
+comparacion <- data.frame(
+  Metrica = c("RMSE", "MAD", "MAPE_porcentaje"),
+  Ganador = as.numeric(tabla[1, c("RMSE", "MAD", "MAPE_porcentaje")]),
+  Ingenuo = as.numeric(referente[1, c("RMSE", "MAD", "MAPE_porcentaje")])
+)
+comparacion$Reduccion <- comparacion$Ingenuo - comparacion$Ganador
+comparacion$Reduccion_porcentaje <- 100 * comparacion$Reduccion / comparacion$Ingenuo
+mostrar_tabla(comparacion)
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, paso 5**
+
+- Método seleccionado según RMSE:
+- ¿Supera al ingenuo estacional y por cuánto?:
+- ¿Por qué se necesitan los mismos orígenes y la fila del referente?:
+- ¿Por qué no basta una medida relativa con denominador de otro tramo?:
+
+</div>
+
+### Paso 6. Validar al ganador
+
+```{r r1-paso6}
+# La columna elegida contiene errores fuera de muestra, uno por origen.
+errores_ganador <- evaluacion$errores[, evaluacion$ganador]
+m_error <- floor(length(errores_ganador) / 4)
+graficar_acf(errores_ganador, m_error, "ACF de errores de origen móvil")
+mostrar_tabla(resultado_ljung(errores_ganador, m = m_error, p = 0))
+mostrar_tabla(data.frame(
+  Metodo = evaluacion$ganador, N = length(errores_ganador),
+  Error_medio = mean(errores_ganador),
+  RMSE = sqrt(mean(errores_ganador^2)),
+  Cociente_error_medio_RMSE = mean(errores_ganador) /
+    sqrt(mean(errores_ganador^2))
+))
+# Jarque–Bera usa asimetría y curtosis calculadas con momentos de orden 2, 3 y 4.
+# lower.tail = FALSE devuelve la cola superior de la chi-cuadrado con 2 gl.
+if (length(errores_ganador) >= 40) {
+  centrados <- errores_ganador - mean(errores_ganador)
+  m2 <- mean(centrados^2)
+  asimetria <- mean(centrados^3) / m2^(3 / 2)
+  curtosis <- mean(centrados^4) / m2^2
+  JB <- length(centrados) / 6 * (asimetria^2 + (curtosis - 3)^2 / 4)
+  mostrar_tabla(data.frame(
+    N = length(centrados), JB = JB, gl = 2,
+    valor_p = stats::pchisq(JB, df = 2, lower.tail = FALSE)
+  ))
+} else {
+  mostrar_tabla(data.frame(
+    N = length(errores_ganador),
+    Jarque_Bera = "No calculada: menos de 40 errores; criterio operativo."
+  ))
+}
+# El gráfico Q-Q permite examinar visualmente la forma de los errores.
+stats::qqnorm(errores_ganador, main = "Q-Q de errores de origen móvil")
+stats::qqline(errores_ganador, col = "red")
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, paso 6**
+
+- Hipótesis, regla de decisión y conclusión de Ljung–Box:
+- Interpretación del correlograma:
+- Hipótesis e interpretación de Jarque–Bera, si corresponde:
+- Lectura del gráfico Q-Q:
+- Interpretación del error medio frente al RMSE:
+- Limitaciones de la validación:
+
+</div>
+
+```{r r1-residuos-medias}
+# Se ajustan doce medias estacionales sobre toda la serie para la comparación
+# adicional solicitada. Aquí sí se trata de residuos dentro de muestra.
+datos_completos <- data.frame(y = y, q = factor(cycle(serie)))
+ajuste_medias <- stats::lm(y ~ q - 1, data = datos_completos)
+residuos_medias <- stats::residuals(ajuste_medias)
+mostrar_tabla(resultado_ljung(residuos_medias, m = 24, p = 12))
+graficar_acf(residuos_medias, 24, "Residuos: medias estacionales")
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, comparación adicional**
+
+- Comparación con los errores de origen móvil del ganador:
+- Explicación de las diferencias entre ambos diagnósticos:
+
+</div>
+
+### Paso 7. Pronosticar un ciclo completo
+
+```{r r1-paso7}
+# Se reajusta el método seleccionado con toda la serie para proyectar s períodos.
+# La banda es heurística: pronóstico +/- 1.96 desviaciones de los errores
+# de horizonte uno. Se conserva su ancho para todos los horizontes.
+futuros <- pronosticar_metodo(y, s, evaluacion$ganador, h = s)
+desviacion_error <- stats::sd(errores_ganador)
+limite_inferior <- futuros - stats::qnorm(0.975) * desviacion_error
+limite_superior <- futuros + stats::qnorm(0.975) * desviacion_error
+tiempo_futuro <- tail(as.numeric(time(serie)), 1) + seq_len(s) / s
+pronostico_final <- data.frame(
+  Horizonte = seq_len(s), Anio = floor(tiempo_futuro + 1e-8),
+  Periodo = round((tiempo_futuro - floor(tiempo_futuro + 1e-8)) * s) + 1,
+  Pronostico = futuros, Inferior_heuristico = limite_inferior,
+  Superior_heuristico = limite_superior
+)
+mostrar_tabla(pronostico_final)
+# Se muestran los cuatro últimos ciclos y un ciclo futuro.
+inicio <- max(1, length(y) - 4 * s + 1)
+indices <- inicio:length(y)
+plot(as.numeric(time(serie))[indices], y[indices], type = "l",
+     xlim = range(as.numeric(time(serie))[indices], tiempo_futuro),
+     ylim = range(y[indices], limite_inferior, limite_superior),
+     xlab = "Año", ylab = "Valor", main = "Pronóstico y banda heurística")
+polygon(c(tiempo_futuro, rev(tiempo_futuro)),
+        c(limite_inferior, rev(limite_superior)),
+        col = adjustcolor("steelblue", alpha.f = 0.2), border = NA)
+lines(tiempo_futuro, futuros, type = "o", col = "blue")
+legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
+       col = c("black", "blue", "steelblue"), lty = c(1, 1, 1), cex = 0.8)
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, paso 7**
+
+- Explique en dos líneas por qué la banda es heurística:
+- Interpretación sustantiva, línea 1:
+- Interpretación sustantiva, línea 2:
+- Interpretación sustantiva, línea 3:
+
+</div>
+
+### Paso 8. Contraste de tipo II frente a tipo IV
+
+```{r r1-paso8}
+# Los dos modelos usan los mismos datos; el segundo agrega una tendencia.
+# anova con test = "F" compara la reducción de suma de cuadrados residual.
+datos_F <- data.frame(y = y, t = seq_along(y), q = factor(cycle(serie)))
+modelo_reducido <- stats::lm(y ~ q, data = datos_F)
+modelo_completo <- stats::lm(y ~ t + q, data = datos_F)
+comparacion_F <- stats::anova(modelo_reducido, modelo_completo, test = "F")
+pendiente <- unname(stats::coef(modelo_completo)["t"])
+mostrar_tabla(data.frame(
+  F = comparacion_F$F[2], valor_p = comparacion_F[["Pr(>F)"]][2],
+  Pendiente_F_por_mes = pendiente, Pendiente_F_por_decada = 120 * pendiente
+))
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 1, paso 8**
+
+- Hipótesis nula y alternativa:
+- Significancia y regla de decisión:
+- Conclusión estadística:
+- Interpretación de la magnitud en grados Fahrenheit por década:
+- ¿La prueba y la magnitud del efecto apuntan en la misma dirección?:
+
+</div>
+
+## Ruta 2. Consumo trimestral de gas del Reino Unido
+
+### Paso 1. Graficar y nombrar el patrón
+
+```{r r2-paso1}
+# Se seleccionan los datos de esta ruta y se conserva su calendario.
+ruta <- rutas$ruta2
+serie <- ruta$serie
+y <- as.numeric(serie)
+s <- ruta$s
+plot(serie, main = "Consumo de gas en Reino Unido",
+     xlab = "Año", ylab = "Consumo (millones de termias)")
+```
+
+| Componente | ¿Se observa? | Evidencia |
+|:--|:--|:--|
+| Nivel | [Completar] | [Completar] |
+| Tendencia | [Completar] | [Completar] |
+| Estacionalidad | [Completar] | [Completar] |
+| Ciclo | [Completar] | [Completar] |
+| Episodios atípicos | [Completar] | [Completar] |
+
+```{r r2-nivel-amplitud}
+# Cada fila de la matriz guarda los cuatro trimestres de un año.
+# rowMeans obtiene el nivel medio; apply con MARGIN = 1 recorre las filas.
+datos_anuales <- matrix(y, ncol = s, byrow = TRUE)
+resumen_anual <- data.frame(
+  Anio = unique(floor(as.numeric(time(serie)))),
+  Nivel = rowMeans(datos_anuales),
+  Amplitud = apply(datos_anuales, MARGIN = 1,
+                  FUN = function(valores) max(valores) - min(valores))
+)
+mostrar_tabla(resumen_anual)
+plot(resumen_anual$Nivel, resumen_anual$Amplitud, pch = 19,
+     xlab = "Nivel medio anual", ylab = "Amplitud estacional anual",
+     main = "Nivel y amplitud: cada punto representa un año")
+mostrar_tabla(data.frame(Correlacion = cor(resumen_anual$Nivel,
+                                          resumen_anual$Amplitud)))
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 2, escala**
+
+- Decisión: aditiva o multiplicativa:
+- Justificación apoyada en el gráfico y la correlación:
+
+</div>
+
+### Paso 2. Correlograma y prueba
+
+```{r r2-paso2}
+graficar_acf(y, floor(length(y) / 4), "Correlograma de la ruta 2")
+# Se solicitan cuatro múltiplos del período estacional.
+# Se suma 1 para saltar la posición del rezago cero.
+rezagos <- s * 1:4
+r <- as.numeric(stats::acf(y, lag.max = 4 * s, plot = FALSE)$acf)
+mostrar_tabla(data.frame(Rezago = rezagos, ACF = r[rezagos + 1]))
+mostrar_tabla(resultado_ljung(y, m = 4 * s))
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 2, paso 2**
+
+- Hipótesis, significancia y regla de decisión:
+- Interpretación de Ljung–Box:
+- ¿Los picos en múltiplos de s decaen o se mantienen?:
+- ¿Qué distingue a los tipos II y IV?:
+
+</div>
+
+### Paso 3. Partir la muestra
+
+```{r r2-paso3}
+# El origen o usa los primeros o datos y evalúa exclusivamente el dato o+1.
+origenes <- ruta$origenes
+mostrar_tabla(data.frame(
+  Primer_origen = min(origenes), Ultimo_origen = max(origenes),
+  Numero_origenes = length(origenes), Horizonte = 1,
+  Primer_dato_evaluado = min(origenes) + 1,
+  Ultimo_dato_evaluado = max(origenes) + 1
+))
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 2, paso 3**
+
+- Descripción y justificación del esquema de evaluación:
+
+</div>
+
+### Paso 4. Ajustar candidatos en cada origen
+
+```{r r2-paso4}
+# evaluar_ruta reestima todos los candidatos en cada origen.
+# Los resultados quedan guardados para comparar, validar y pronosticar.
+evaluaciones$ruta2 <- evaluar_ruta(y, s, origenes, ruta$metodos)
+evaluacion <- evaluaciones$ruta2
+mostrar_tabla(data.frame(Metodo = ruta$metodos))
+```
+
+### Paso 5. Comparar sobre los mismos orígenes
+
+```{r r2-paso5}
+mostrar_tabla(evaluacion$tabla)
+# Se conservan métricas numéricas para calcular la diferencia con el referente.
+# Una reducción positiva significa un error menor respecto al ingenuo estacional.
+tabla <- evaluacion$tabla
+referente <- tabla[tabla$Metodo == "Ingenuo estacional", ]
+comparacion <- data.frame(
+  Metrica = c("RMSE", "MAD", "MAPE_porcentaje"),
+  Ganador = as.numeric(tabla[1, c("RMSE", "MAD", "MAPE_porcentaje")]),
+  Ingenuo = as.numeric(referente[1, c("RMSE", "MAD", "MAPE_porcentaje")])
+)
+comparacion$Reduccion <- comparacion$Ingenuo - comparacion$Ganador
+comparacion$Reduccion_porcentaje <- 100 * comparacion$Reduccion / comparacion$Ingenuo
+mostrar_tabla(comparacion)
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 2, paso 5**
+
+- Método seleccionado según RMSE:
+- ¿Supera al ingenuo estacional y por cuánto?:
+- ¿Por qué se necesitan los mismos orígenes y la fila del referente?:
+- ¿Por qué no basta una medida relativa con denominador de otro tramo?:
+
+</div>
+
+### Paso 6. Validar al ganador
+
+```{r r2-paso6}
+# La columna elegida contiene errores fuera de muestra, uno por origen.
+errores_ganador <- evaluacion$errores[, evaluacion$ganador]
+m_error <- floor(length(errores_ganador) / 4)
+graficar_acf(errores_ganador, m_error, "ACF de errores de origen móvil")
+mostrar_tabla(resultado_ljung(errores_ganador, m = m_error, p = 0))
+mostrar_tabla(data.frame(
+  Metodo = evaluacion$ganador, N = length(errores_ganador),
+  Error_medio = mean(errores_ganador),
+  RMSE = sqrt(mean(errores_ganador^2)),
+  Cociente_error_medio_RMSE = mean(errores_ganador) /
+    sqrt(mean(errores_ganador^2))
+))
+# Jarque–Bera usa asimetría y curtosis calculadas con momentos de orden 2, 3 y 4.
+# lower.tail = FALSE devuelve la cola superior de la chi-cuadrado con 2 gl.
+if (length(errores_ganador) >= 40) {
+  centrados <- errores_ganador - mean(errores_ganador)
+  m2 <- mean(centrados^2)
+  asimetria <- mean(centrados^3) / m2^(3 / 2)
+  curtosis <- mean(centrados^4) / m2^2
+  JB <- length(centrados) / 6 * (asimetria^2 + (curtosis - 3)^2 / 4)
+  mostrar_tabla(data.frame(
+    N = length(centrados), JB = JB, gl = 2,
+    valor_p = stats::pchisq(JB, df = 2, lower.tail = FALSE)
+  ))
+} else {
+  mostrar_tabla(data.frame(
+    N = length(errores_ganador),
+    Jarque_Bera = "No calculada: menos de 40 errores; criterio operativo."
+  ))
+}
+# El gráfico Q-Q permite examinar visualmente la forma de los errores.
+stats::qqnorm(errores_ganador, main = "Q-Q de errores de origen móvil")
+stats::qqline(errores_ganador, col = "red")
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 2, paso 6**
+
+- Hipótesis, regla de decisión y conclusión de Ljung–Box:
+- Interpretación del correlograma:
+- Hipótesis e interpretación de Jarque–Bera, si corresponde:
+- Lectura del gráfico Q-Q:
+- Interpretación del error medio frente al RMSE:
+- Limitaciones de la validación:
+
+</div>
+
+### Paso 7. Pronosticar un ciclo completo
+
+```{r r2-paso7}
+# Se reajusta el método seleccionado con toda la serie para proyectar s períodos.
+# La banda es heurística: pronóstico +/- 1.96 desviaciones de los errores
+# de horizonte uno. Se conserva su ancho para todos los horizontes.
+futuros <- pronosticar_metodo(y, s, evaluacion$ganador, h = s)
+desviacion_error <- stats::sd(errores_ganador)
+limite_inferior <- futuros - stats::qnorm(0.975) * desviacion_error
+limite_superior <- futuros + stats::qnorm(0.975) * desviacion_error
+tiempo_futuro <- tail(as.numeric(time(serie)), 1) + seq_len(s) / s
+pronostico_final <- data.frame(
+  Horizonte = seq_len(s), Anio = floor(tiempo_futuro + 1e-8),
+  Periodo = round((tiempo_futuro - floor(tiempo_futuro + 1e-8)) * s) + 1,
+  Pronostico = futuros, Inferior_heuristico = limite_inferior,
+  Superior_heuristico = limite_superior
+)
+mostrar_tabla(pronostico_final)
+# Se muestran los cuatro últimos ciclos y un ciclo futuro.
+inicio <- max(1, length(y) - 4 * s + 1)
+indices <- inicio:length(y)
+plot(as.numeric(time(serie))[indices], y[indices], type = "l",
+     xlim = range(as.numeric(time(serie))[indices], tiempo_futuro),
+     ylim = range(y[indices], limite_inferior, limite_superior),
+     xlab = "Año", ylab = "Valor", main = "Pronóstico y banda heurística")
+polygon(c(tiempo_futuro, rev(tiempo_futuro)),
+        c(limite_inferior, rev(limite_superior)),
+        col = adjustcolor("steelblue", alpha.f = 0.2), border = NA)
+lines(tiempo_futuro, futuros, type = "o", col = "blue")
+legend("topleft", c("Observado", "Pronóstico", "Banda heurística"),
+       col = c("black", "blue", "steelblue"), lty = c(1, 1, 1), cex = 0.8)
+```
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Ruta 2, paso 7**
+
+- Explique en dos líneas por qué la banda es heurística:
+- Interpretación sustantiva, línea 1:
+- Interpretación sustantiva, línea 2:
+- Interpretación sustantiva, línea 3:
+
+</div>
+
+# 4. Estación C. Auditoría
+
+Los siguientes fragmentos son los ejemplos que deben auditarse. Se muestran sin
+ejecutar porque utilizan funciones y datos propios del curso. Sus defectos
+se dejan para el análisis de los autores.
+
+## C.1. Bloque 1
+
+```{r c1-enunciado, eval=FALSE}
+y <- creditos_consumo
+p <- optimizar_holt(y, 0.05)
+holt_opt <- function(yy, h) ajustar_holt(yy, p$a, p$b)$pronosticar(h)
+om <- origen_movil(y, list(Holt = holt_opt), origenes = 20:40)
+```
+
+## C.2. Bloque 2
+
+```{r c2-enunciado, eval=FALSE}
+b <- unname(rendimiento_bono)
+rbind(`MM(4)` = medidas(b, ajustar_mm(b, 4)$yhat),
+      `SES(0,2)` = medidas(b, ajustar_ses(b, 0.2)$yhat))
+```
+
+## C.3. Bloque 3
+
+```{r c3-enunciado, eval=FALSE}
+yn <- as.numeric(nottem)
+qn <- factor(cycle(nottem))
+en <- residuals(lm(yn ~ qn - 1))
+ljung_box(acf_muestral(en, 24), T = 240)
+```
+
+## C.4. Bloque 4
+
+La afirmación del enunciado es que el método gana porque su MASE es 0.92.
+El numerador usa errores sobre UKgas en los orígenes 80:107, pero el
+denominador del ingenuo estacional se calcula sobre el entrenamiento inicial.
+
+```{r c4-evidencia}
+# Esta tabla recupera la evaluación de la ruta 2 sobre los orígenes 80:107.
+# No identifica el método anónimo del enunciado; aporta la comparación disponible.
+mostrar_tabla(evaluaciones$ruta2$tabla)
+```
+
+| Bloque | Línea o afirmación problemática | Defecto identificado | Efecto en el resultado | ¿Qué se debe cambiar o reportar? |
+|:--|:--|:--|:--|:--|
+| 1 | [Completar] | [Completar] | [Completar] | [Completar] |
+| 2 | [Completar] | [Completar] | [Completar] | [Completar] |
+| 3 | [Completar] | [Completar] | [Completar] | [Completar] |
+| 4 | [Completar] | [Completar] | [Completar] | [Completar] |
+
+# 5. Estación D. Cuatro demostraciones
+
+Se reservan únicamente los enunciados y espacios de trabajo. Las demostraciones
+y sus verificaciones numéricas quedan pendientes para otra sesión.
+
+## D.1. Actualización de la media móvil
+
+Demostrar la identidad:
+
+$$
+MM_{t+1}(k)=MM_t(k)+\frac{Y_{t+1}-Y_{t+1-k}}{k}.
+$$
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — D.1**
+
+- Demostración o imagen del desarrollo manuscrito:
+- Costo de actualizar frente a recalcular:
+- Verificación numérica e interpretación (pendientes para otra sesión):
+
+</div>
+
+
+## D.2. Recursión del suavizamiento exponencial
+
+Partir de la suma infinita y demostrar:
+
+$$
+\widehat Y_{t+1}=\alpha Y_t+(1-\alpha)\widehat Y_t.
+$$
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — D.2**
+
+- Demostración o imagen del desarrollo manuscrito:
+- Valores que se deben guardar en cada implementación:
+- Operaciones por nuevo pronóstico:
+- Verificación numérica e interpretación (pendientes para otra sesión):
+
+</div>
+
+
+## D.3. Primera diferencia de una tendencia lineal
+
+Sea $Y_t=\beta_0+\beta_1t+\varepsilon_t$, con
+$\varepsilon_t\sim RB(0,\sigma^2)$, y $Z_t=Y_t-Y_{t-1}$.
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — D.3**
+
+- a) Demostrar la forma de Z_t y su estacionariedad en media:
+- b) Obtener E(u_t), Var(u_t) y Cov(u_t,u_(t-h)) para h=1 y h≥2:
+- c) Decidir si u_t es ruido blanco; calcular y explicar el signo de su ACF en 1:
+- ¿Puede haber estacionariedad en media sin ruido blanco?:
+- Verificación numérica e interpretación (pendientes para otra sesión):
+
+</div>
+
+
+## D.4. Ficticias y medias estacionales
+
+Demostrar que los coeficientes de la regresión estacional sin intercepto
+son los promedios de cada estación.
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — D.4**
+
+- Demostración de beta_j estimado = media de la estación j:
+- Escritura explícita de X transpuesta X y X transpuesta Y para cuatro estaciones y cuatro ciclos:
+- Paso donde se usa que cada fila de X contiene exactamente un uno:
+- Verificación numérica e interpretación (pendientes para otra sesión):
+
+</div>
+
+
+# 6. Cierre: autoevaluación
+
+
+<div class="respuesta">
+
+**ESCRIBIR AQUÍ — Autoevaluación**
+
+- 1. ¿Qué distingue en el correlograma una serie de tipo II de una de tipo IV?:
+- 2. ¿Por qué el MSE dentro de muestra no sirve para elegir entre modelos anidados?:
+- 3. ¿Cuál es la línea de evaluar_ruta() que impide la fuga de información?:
+- 4. ¿Por qué una serie puede ser estacionaria en media sin que sus incrementos sean ruido blanco?:
+- 5. ¿Qué se reporta junto con un pronóstico, además del número?:
+
+</div>
+
+# Referencias de implementación
+
+- Enunciado: *Taller de la Clase 6*, Juan Pablo Valencia Arango, semestre 2026-II.
+- [R stats: HoltWinters](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/HoltWinters.html).
+- [R stats: predicción de HoltWinters](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/predict.HoltWinters.html).
+- [R stats: Box.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/box.test.html).
+- [R stats: lm](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/lm.html).
+- [R stats: comparación de modelos lineales](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/anova.lm.html).
+
+```{r sesion, results='markup'}
+# Se registra la versión de R y de los paquetes para reproducir la ejecución.
+sessionInfo()
+```
