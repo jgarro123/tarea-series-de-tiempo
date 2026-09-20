@@ -394,7 +394,7 @@ mostrar_tabla(tabla_A_ljung)
 
 
 
-## A.3. Tabla de decisión
+</div>
 
 ## A.3. Tabla de decisión
 
