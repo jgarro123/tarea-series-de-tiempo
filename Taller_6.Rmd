@@ -394,7 +394,7 @@ mostrar_tabla(tabla_A_ljung)
 
 
 
-</div>
+## A.3. Tabla de decisión
 
 ## A.3. Tabla de decisión
 
@@ -478,9 +478,9 @@ plot(serie, main = "Temperatura en Nottingham",
 | Componente | ¿Se observa? | Evidencia |
 |:--|:--|:--|
 | Nivel | Sí | Oscila alrededor de 49 °F de forma estable durante los veinte años. |
-| Tendencia | No a simple vista | La serie no muestra una deriva visible; el paso 8 la contrasta formalmente y encuentra un efecto real pero minúsculo frente a la estacionalidad. |
+| Tendencia | No a simple vista | La serie no muestra una tendecia visible. |
 | Estacionalidad | Sí, dominante | Ciclo anual muy regular, de unos 23 °F entre el mes más frío y el más cálido, repetido con la misma forma cada doce meses. |
-| Ciclo | No | No hay oscilaciones plurianuales de período variable superpuestas al ciclo anual. |
+| Ciclo | No a simple vista| No hay oscilaciones con peridos superiores a un año. |
 | Episodios atípicos | Prácticamente ninguno | Algún invierno algo más suave o verano algo más fresco, pero dentro del rango habitual; no se aprecian quiebres ni valores extremos aislados. |
 
 ### Paso 2. Correlograma y prueba
