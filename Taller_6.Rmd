@@ -390,20 +390,9 @@ mostrar_tabla(tabla_A_ljung)
 
 <div class="respuesta">
 
-**ESCRIBIR AQUÍ — A.2**
 
-- Hipótesis nula y alternativa:
-- Nivel de significancia y regla de decisión:
-- ¿Por qué rechaza en las cuatro series?
-- ¿Por qué no permite distinguir los cuatro patrones?
 
-</div>
 
-## A.3. Tabla de decisión
----
-title: "A.3. Tabla de decisión — Diagnóstico de series"
-format: html
----
 
 ## A.3. Tabla de decisión
 
