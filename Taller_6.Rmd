@@ -72,7 +72,7 @@ necesita el código de clases anteriores.
     operativo que no garantiza por sí mismo una buena aproximación en
     muestras pequeñas.
 
-```{r utilidades, echo=TRUE}
+```{r utilidades, echo=FALSE}
 # Esta primera función se crea para presentar todas las tablas del informe de la
 # misma manera. El objeto tabla es el parámetro de entrada: cuando se llame a la
 # función, recibirá como argumento un data.frame con los resultados que se desean
@@ -562,10 +562,12 @@ mostrar_tabla(data.frame(Correlacion = cor(resumen_anual$Nivel,
                                           resumen_anual$Amplitud)))
 ```
 
+::: respuesta
+**Ruta 2, escala**
 
-
-- Decisión: La escala de la ruta 2 es multiplicativa.
-- Justificación: La amplitud estacional aumenta con el nivel medio y su correlación es positiva y muy alta (0,99).
+-   **Decisión:** La escala de la ruta 2 es multiplicativa.
+-   **Justificación:** La amplitud estacional aumenta con el nivel medio y su correlación es positiva y muy alta ($0{,}99$). Esto indica que las oscilaciones estacionales crecen proporcionalmente con el nivel de la serie.
+:::
 
 
 ## Paso 2. Correlograma y prueba
@@ -615,6 +617,12 @@ r_{12} = 0{,}884,\quad r_{24} = 0{,}866,\quad r_{36} = 0{,}810,\quad r_{48} = 0{
 $$
 
 La caída entre el primer y el último pico es de apenas **14 %**, y ese poco que cae es el efecto de borde de tener menos pares disponibles al calcular rezagos altos con $T = 240$ fijo, no un decaimiento real de la dependencia estacional.
+
+#### ¿Qué distingue una serie de tipo II de una de tipo IV?
+
+En una serie de **tipo II**, el correlograma oscila alrededor de cero con período $s$: aparecen picos positivos en $s, 2s, 3s, \dots$ y valores negativos en los rezagos intermedios. En `nottem`, por ejemplo, $r_6\approx-0{,}88$ es casi el reflejo de $r_{12}$.
+
+En una serie de **tipo IV**, la tendencia desplaza el correlograma hacia valores positivos. Los picos estacionales siguen presentes, pero aparecen sobre un decaimiento lento y los rezagos intermedios no suelen cruzar por debajo de cero. Por eso `nottem` representa el tipo II, mientras que `UKgas` representa el tipo IV.
 
 :::
 
@@ -667,6 +675,11 @@ mostrar_tabla(data.frame(
 ))
 ```
 
+::: respuesta
+**Ruta 1, paso 3**
+
+Se utilizan los orígenes 200 a 239. En cada origen se ajustan los métodos únicamente con las observaciones disponibles hasta esa posición y se pronostica el dato siguiente. Así se obtienen 40 evaluaciones de horizonte uno, desde la observación 201 hasta la 240, sin usar información futura.
+:::
 
 ### Ruta 2. Consumo trimestral de gas del Reino Unido
 
@@ -687,7 +700,11 @@ mostrar_tabla(data.frame(
 ))
 ```
 
+::: respuesta
+**Ruta 2, paso 3**
 
+Se utilizan los orígenes 80 a 107. Cada método recibe únicamente los datos observados hasta el origen y pronostica el trimestre siguiente. El esquema produce 28 evaluaciones de horizonte uno, desde la observación 81 hasta la 108, manteniendo la misma ventana de comparación para todos los métodos.
+:::
 
 ## Paso 4. Ajustar candidatos en cada origen
 
@@ -1411,6 +1428,39 @@ $$
 1. Los coeficientes de un modelo `lm(y ~ q - 1)` **no cambian** si se elimina o añade una estación distinta: las columnas son ortogonales, sin colinealidad entre ellas.
 
 2. El modelo de "medias estacionales" del paso 4 de la Estación B es, literalmente, "**calcule el promedio de cada mes o trimestre por separado**" — con todas las limitaciones que eso conlleva, como se vio en la comparación adicional de la ruta 1.
+
+## Verificación numérica
+
+```{r d4-verificacion-medias}
+# y_q contiene cuatro ciclos completos de una serie con cuatro estaciones.
+# q identifica la estación de cada observación y X construye sus ficticias.
+y_q <- c(1.5, 4.3, 8.9, 12.5, 1.8, 4.5, 9.0, 12.1,
+         1.2, 4.6, 8.1, 12.9, 1.9, 5.1, 8.6, 13.2)
+q <- factor(rep(1:4, 4))
+X <- stats::model.matrix(~ q - 1)
+
+# rbind coloca en filas los coeficientes de la regresión y las medias directas.
+# La igualdad de ambas filas verifica que cada coeficiente es una media estacional.
+rbind(
+  Coeficientes_lm = stats::coef(stats::lm(y_q ~ q - 1)),
+  Medias_estacionales = tapply(y_q, q, mean)
+)
+```
+
+```{r d4-verificacion-xtx}
+# crossprod(X) calcula X transpuesta por X sin escribir la transpuesta a mano.
+# El resultado debe ser 4 por la matriz identidad porque hay cuatro ciclos.
+crossprod(X)
+```
+
+```{r d4-verificacion-xty}
+# crossprod(X, y_q) calcula X transpuesta por Y.
+# La segunda fila suma directamente las observaciones de cada estación.
+rbind(
+  `X transpuesta por Y` = as.vector(crossprod(X, y_q)),
+  Sumas_por_estacion = tapply(y_q, q, sum)
+)
+```
 :::
 
 # 6. Cierre: autoevaluación
