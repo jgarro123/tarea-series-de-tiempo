@@ -578,14 +578,6 @@ mostrar_tabla(data.frame(Rezago = rezagos, ACF = r[rezagos + 1]))
 mostrar_tabla(resultado_ljung(y, m = 4 * s))
 ```
 
-::: respuesta
-**ESCRIBIR AQUÍ — Ruta 1, paso 2**
-
-
-#### Ljung–Box con 48 rezagos
-
-#### Hipótesis, significancia y regla
-
 $H_0:$ `nottem` es ruido blanco hasta el rezago $m = 48$, contra $H_1:$ no lo es. Con $\alpha = 0{,}05$ se rechaza si
 
 $$
@@ -1334,7 +1326,6 @@ son los promedios de cada estación.
 
 ::: respuesta
 
-
 Sea $X$ la matriz $n \times r$ de ficticias (con $n$ ciclos completos), $x_{tj} = 1$ si la observación $t$ pertenece a la estación $j$ y $0$ en otro caso. La entrada $(j, l)$ de $X^\top X$ es
 
 $$
@@ -1459,6 +1450,8 @@ Una medida de incertidumbre (banda o intervalo) con su naturaleza declarada —h
 -   [R stats: comparación de modelos
     lineales](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/anova.lm.html).
 
+
+FIN
 ```{r sesion, results='markup'}
 # Se registra la versión de R y de los paquetes para reproducir la ejecución.
 sessionInfo()
