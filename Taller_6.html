@@ -14,7 +14,7 @@
 
 <meta name="date" content="2026-09-19" />
 
-<title>Taller de la Clase 6</title>
+<title>A.4 — Dos decaimientos lentos, dos causas</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -451,7 +451,8 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Taller de la Clase 6</h1>
+<h1 class="title toc-ignore">A.4 — Dos decaimientos lentos, dos
+causas</h1>
 <h3 class="subtitle">Repaso integrador de las clases 1 a 5</h3>
 <h4 class="author">Juan David Garro Arboleda — <a href="mailto:jgarro@unal.edu.co" class="email">jgarro@unal.edu.co</a></h4>
 <h4 class="author">Mariana Castano Celis — <a href="mailto:mcastanoce@unal.edu.co" class="email">mcastanoce@unal.edu.co</a></h4>
@@ -472,74 +473,15 @@ Estación A. Diagnóstico: cuatro series, cuatro patrones</a>
 correlogramas y autocorrelaciones</a></li>
 <li><a href="#a.2.-ljungbox-con-24-rezagos" id="toc-a.2.-ljungbox-con-24-rezagos">A.2. Ljung–Box con 24
 rezagos</a></li>
-<li><a href="#a.3.-tabla-de-decisi%C3%B3n" id="toc-a.3.-tabla-de-decisión">A.3. Tabla de decisión</a></li>
+<li><a href="#a.3.-tabla-de-decisi%C3%B3n" id="toc-a.3.-tabla-de-decisión">## A.3. Tabla de decisión</a></li>
+<li><a href="#a.3.-tabla-de-decisi%C3%B3n-1" id="toc-a.3.-tabla-de-decisión-1">A.3. Tabla de decisión</a>
+<ul>
+<li><a href="#notas-de-interpretaci%C3%B3n" id="toc-notas-de-interpretación">Notas de interpretación</a></li>
+<li><a href="#conexi%C3%B3n-con-la-prueba-ljung-box-a.2" id="toc-conexión-con-la-prueba-ljung-box-a.2">Conexión con la prueba
+Ljung-Box (A.2)</a></li>
+</ul></li>
 <li><a href="#a.4.-decaimiento-lento" id="toc-a.4.-decaimiento-lento">A.4. Decaimiento lento</a></li>
 </ul></li>
-<li><a href="#estaci%C3%B3n-b.-protocolo-completo-para-ambas-rutas" id="toc-estación-b.-protocolo-completo-para-ambas-rutas">3. Estación B.
-Protocolo completo para ambas rutas</a>
-<ul>
-<li><a href="#ruta-1.-temperatura-mensual-de-nottingham" id="toc-ruta-1.-temperatura-mensual-de-nottingham">Ruta 1. Temperatura
-mensual de Nottingham</a>
-<ul>
-<li><a href="#paso-1.-graficar-y-nombrar-el-patr%C3%B3n" id="toc-paso-1.-graficar-y-nombrar-el-patrón">Paso 1. Graficar y nombrar
-el patrón</a></li>
-<li><a href="#paso-2.-correlograma-y-prueba" id="toc-paso-2.-correlograma-y-prueba">Paso 2. Correlograma y
-prueba</a></li>
-<li><a href="#paso-3.-partir-la-muestra" id="toc-paso-3.-partir-la-muestra">Paso 3. Partir la muestra</a></li>
-<li><a href="#paso-4.-ajustar-candidatos-en-cada-origen" id="toc-paso-4.-ajustar-candidatos-en-cada-origen">Paso 4. Ajustar
-candidatos en cada origen</a></li>
-<li><a href="#paso-5.-comparar-sobre-los-mismos-or%C3%ADgenes" id="toc-paso-5.-comparar-sobre-los-mismos-orígenes">Paso 5. Comparar
-sobre los mismos orígenes</a></li>
-<li><a href="#paso-6.-validar-al-ganador" id="toc-paso-6.-validar-al-ganador">Paso 6. Validar al ganador</a></li>
-<li><a href="#paso-7.-pronosticar-un-ciclo-completo" id="toc-paso-7.-pronosticar-un-ciclo-completo">Paso 7. Pronosticar un
-ciclo completo</a></li>
-<li><a href="#paso-8.-contraste-de-tipo-ii-frente-a-tipo-iv" id="toc-paso-8.-contraste-de-tipo-ii-frente-a-tipo-iv">Paso 8. Contraste
-de tipo II frente a tipo IV</a></li>
-</ul></li>
-<li><a href="#ruta-2.-consumo-trimestral-de-gas-del-reino-unido" id="toc-ruta-2.-consumo-trimestral-de-gas-del-reino-unido">Ruta 2.
-Consumo trimestral de gas del Reino Unido</a>
-<ul>
-<li><a href="#paso-1.-graficar-y-nombrar-el-patr%C3%B3n-1" id="toc-paso-1.-graficar-y-nombrar-el-patrón-1">Paso 1. Graficar y
-nombrar el patrón</a></li>
-<li><a href="#paso-2.-correlograma-y-prueba-1" id="toc-paso-2.-correlograma-y-prueba-1">Paso 2. Correlograma y
-prueba</a></li>
-<li><a href="#paso-3.-partir-la-muestra-1" id="toc-paso-3.-partir-la-muestra-1">Paso 3. Partir la muestra</a></li>
-<li><a href="#paso-4.-ajustar-candidatos-en-cada-origen-1" id="toc-paso-4.-ajustar-candidatos-en-cada-origen-1">Paso 4. Ajustar
-candidatos en cada origen</a></li>
-<li><a href="#paso-5.-comparar-sobre-los-mismos-or%C3%ADgenes-1" id="toc-paso-5.-comparar-sobre-los-mismos-orígenes-1">Paso 5. Comparar
-sobre los mismos orígenes</a></li>
-<li><a href="#paso-6.-validar-al-ganador-1" id="toc-paso-6.-validar-al-ganador-1">Paso 6. Validar al
-ganador</a></li>
-<li><a href="#paso-7.-pronosticar-un-ciclo-completo-1" id="toc-paso-7.-pronosticar-un-ciclo-completo-1">Paso 7. Pronosticar un
-ciclo completo</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#estaci%C3%B3n-c.-auditor%C3%ADa" id="toc-estación-c.-auditoría">4. Estación C. Auditoría</a>
-<ul>
-<li><a href="#c.1.-bloque-1" id="toc-c.1.-bloque-1">C.1. Bloque
-1</a></li>
-<li><a href="#c.2.-bloque-2" id="toc-c.2.-bloque-2">C.2. Bloque
-2</a></li>
-<li><a href="#c.3.-bloque-3" id="toc-c.3.-bloque-3">C.3. Bloque
-3</a></li>
-<li><a href="#c.4.-bloque-4" id="toc-c.4.-bloque-4">C.4. Bloque
-4</a></li>
-</ul></li>
-<li><a href="#estaci%C3%B3n-d.-cuatro-demostraciones" id="toc-estación-d.-cuatro-demostraciones">5. Estación D. Cuatro
-demostraciones</a>
-<ul>
-<li><a href="#d.1.-actualizaci%C3%B3n-de-la-media-m%C3%B3vil" id="toc-d.1.-actualización-de-la-media-móvil">D.1. Actualización de la
-media móvil</a></li>
-<li><a href="#d.2.-recursi%C3%B3n-del-suavizamiento-exponencial" id="toc-d.2.-recursión-del-suavizamiento-exponencial">D.2. Recursión del
-suavizamiento exponencial</a></li>
-<li><a href="#d.3.-primera-diferencia-de-una-tendencia-lineal" id="toc-d.3.-primera-diferencia-de-una-tendencia-lineal">D.3. Primera
-diferencia de una tendencia lineal</a></li>
-<li><a href="#d.4.-ficticias-y-medias-estacionales" id="toc-d.4.-ficticias-y-medias-estacionales">D.4. Ficticias y medias
-estacionales</a></li>
-</ul></li>
-<li><a href="#cierre-autoevaluaci%C3%B3n" id="toc-cierre-autoevaluación">6. Cierre: autoevaluación</a></li>
-<li><a href="#referencias-de-implementaci%C3%B3n" id="toc-referencias-de-implementación">Referencias de
-implementación</a></li>
 </ul>
 </div>
 
@@ -792,6 +734,38 @@ afirmar estacionalidad anual.</p>
 </div>
 <div id="a.2.-ljungbox-con-24-rezagos" class="section level2">
 <h2>A.2. Ljung–Box con 24 rezagos</h2>
+<p><strong>Hipótesis.</strong><br />
+<span class="math inline">\(H_0: \rho_1 = \rho_2 = \cdots = \rho_{24} =
+0\)</span> (la serie es ruido blanco hasta el rezago 24) contra <span class="math inline">\(H_1:\)</span> algún <span class="math inline">\(\rho_k \neq 0\)</span>. El estadístico es</p>
+<p><span class="math display">\[
+Q = T(T+2) \sum_{k=1}^{m} \frac{r_k^2}{T-k},
+\]</span></p>
+<p>que bajo <span class="math inline">\(H_0\)</span> se distribuye
+aproximadamente <span class="math inline">\(\chi^2_m\)</span> (aquí
+<span class="math inline">\(m=24\)</span>, sin descontar parámetros
+porque se prueba la serie cruda, no residuos).</p>
+<p><strong>Significancia y regla.</strong><br />
+Con <span class="math inline">\(\alpha = 0{,}05\)</span>, el valor
+crítico es <span class="math inline">\(\chi^2_{24;\,0{,}95} =
+36{,}42\)</span>. Se rechaza <span class="math inline">\(H_0\)</span> si
+<span class="math inline">\(Q &gt; 36{,}42\)</span> (equivalentemente,
+si valor_p <span class="math inline">\(&lt; 0.05\)</span>).</p>
+<p><strong>¿Por qué rechaza en las cuatro?</strong><br />
+Los cuatro <span class="math inline">\(Q\)</span> (203, 2342, 953 y 237)
+superan por completo ese umbral y los cuatro valor_p son prácticamente
+cero. Ninguna de las cuatro series es ruido blanco: todas tienen
+memoria, ya sea persistencia de nivel (Hurón), estacionalidad
+(Nottingham, muertes) o tendencia (Australia). Con series tan
+autocorrelacionadas y <span class="math inline">\(T\)</span> moderado a
+grande, casi cualquier serie real rechazaría esta prueba.</p>
+<p><strong>¿Por qué no distingue los patrones?</strong><br />
+<span class="math inline">\(Q\)</span> es una suma de cuadrados de los
+<span class="math inline">\(r_k\)</span>: acumula magnitud sin registrar
+en qué rezagos se concentra la autocorrelación. Un <span class="math inline">\(r_1\)</span> grande (tendencia) y un <span class="math inline">\(r_{12}\)</span> grande (estacionalidad)
+contribuyen igual a <span class="math inline">\(Q\)</span>. La prueba
+contesta “¿queda estructura?”, no “¿qué tipo de estructura queda?” — esa
+segunda pregunta la responde la forma del correlograma (Ejercicios A.1,
+A.3), no el valor agregado de Ljung–Box.</p>
 <pre class="r"><code>tabla_A_ljung &lt;- data.frame()
 for (nombre in names(series_A)) {
   tabla_A_ljung &lt;- rbind(tabla_A_ljung, cbind(
@@ -870,8 +844,24 @@ mostrar_tabla(tabla_A_ljung)</code></pre>
 </div>
 </div>
 <div id="a.3.-tabla-de-decisión" class="section level2">
+<h2>## A.3. Tabla de decisión</h2>
+<p>title: “A.3. Tabla de decisión — Diagnóstico de series” format: html
+—</p>
+</div>
+<div id="a.3.-tabla-de-decisión-1" class="section level2">
 <h2>A.3. Tabla de decisión</h2>
+<p>Con base en los correlogramas, los gráficos de las series y las
+autocorrelaciones muestrales (<span class="math inline">\(r_1\)</span>,
+<span class="math inline">\(r_s\)</span>, <span class="math inline">\(r_{2s}\)</span>) reportadas en la tabla
+<code>tabla_A</code> del taller, se completa la siguiente tabla de
+decisión:</p>
 <table>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left">Serie</th>
@@ -883,41 +873,141 @@ mostrar_tabla(tabla_A_ljung)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">Nivel del lago Hurón</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
+<td align="left"><strong>Tendencia (Tipo III)</strong></td>
+<td align="left">Decaimiento lento y monótono sin picos estacionales
+(<span class="math inline">\(s=1\)</span>). <span class="math inline">\(r_1 = 0.83\)</span> muy alto.</td>
+<td align="left">Suavizamiento exponencial (Holt), ARIMA no estacional,
+regresión con tendencia.</td>
 </tr>
 <tr class="even">
 <td align="left">Temperatura en Nottingham</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
+<td align="left"><strong>Estacionalidad pura (Tipo II)</strong></td>
+<td align="left">Picos claros en múltiplos de <span class="math inline">\(12\)</span> (<span class="math inline">\(s=12\)</span>) que no decaen. <span class="math inline">\(r_{s} = 0.88\)</span> muy alto.</td>
+<td align="left">Modelos estacionales (SARIMA, Holt-Winters estacional),
+descomposición.</td>
 </tr>
 <tr class="odd">
 <td align="left">Población de Australia</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
+<td align="left"><strong>Tendencia (Tipo III)</strong></td>
+<td align="left">Decaimiento lento y persistente. <span class="math inline">\(r_1 = 0.97\)</span> extremadamente alto, indicando
+fuerte inercia.</td>
+<td align="left">Suavizamiento exponencial (Holt), ARIMA con
+diferenciación, regresión con tendencia.</td>
 </tr>
 <tr class="even">
 <td align="left">Muertes accidentales</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
-<td align="left">[Completar]</td>
+<td align="left"><strong>Tendencia + Estacionalidad (Tipo
+IV)</strong></td>
+<td align="left">Decaimiento lento combinado con picos estacionales en
+múltiplos de <span class="math inline">\(12\)</span>. <span class="math inline">\(r_1 = 0.71\)</span> y <span class="math inline">\(r_{s} = 0.63\)</span>.</td>
+<td align="left">SARIMA, Holt-Winters (tendencia + estacionalidad),
+descomposición STL.</td>
 </tr>
 </tbody>
 </table>
+<div id="notas-de-interpretación" class="section level3">
+<h3>Notas de interpretación</h3>
+<ul>
+<li><p><strong>Nivel del lago Hurón (Tipo III).</strong> Aunque la serie
+es anual (<span class="math inline">\(s=1\)</span>), el correlograma
+muestra un decaimiento lento típico de una serie con persistencia de
+nivel o memoria larga. La banda de Bartlett se ensancha, pero los
+primeros <span class="math inline">\(r_k\)</span> permanecen fuera de
+ella. Esto descarta el escenario de ruido blanco (Tipo I) y descarta
+también estacionalidad (no hay picos periódicos).</p></li>
+<li><p><strong>Temperatura en Nottingham (Tipo II).</strong> Es el
+ejemplo canónico de estacionalidad pura. No hay tendencia a largo plazo,
+pero la dependencia con la época del año es muy fuerte: <span class="math inline">\(r_{12} = 0.88\)</span> prácticamente igual a <span class="math inline">\(r_1 = 0.81\)</span>. Los picos estacionales no
+decaen, lo que confirma que el ciclo anual domina la dinámica.</p></li>
+<li><p><strong>Población de Australia (Tipo III).</strong> Su <span class="math inline">\(r_1 = 0.97\)</span> es el más alto de las cuatro
+series, señal de una tendencia muy suave y sostenida (fuerte inercia).
+Aunque la frecuencia es trimestral (<span class="math inline">\(s=4\)</span>), no se observan picos estacionales
+marcados en los rezagos <span class="math inline">\(4, 8, 12,
+\dots\)</span> que superen la banda.</p></li>
+<li><p><strong>Muertes accidentales (Tipo IV).</strong> Combina
+tendencia y estacionalidad. El decaimiento inicial lento (<span class="math inline">\(r_1 = 0.71\)</span>) indica memoria/tendencia, y
+el pico en <span class="math inline">\(r_{12} = 0.63\)</span> confirma
+el ciclo anual (mayor número de muertes en verano en EE. UU.). Es el
+caso más rico de los cuatro y por eso requiere modelos tipo SARIMA u
+Holt-Winters estacional.</p></li>
+</ul>
+</div>
+<div id="conexión-con-la-prueba-ljung-box-a.2" class="section level3">
+<h3>Conexión con la prueba Ljung-Box (A.2)</h3>
+<p>Los cuatro valores de <span class="math inline">\(Q\)</span> de la
+prueba Ljung-Box con <span class="math inline">\(m=24\)</span> rezagos
+(203, 2342, 953 y 237) superan ampliamente el valor crítico <span class="math inline">\(\chi^2_{24;\,0.95} = 36.42\)</span>. Esto es
+coherente con lo que se observa en los correlogramas: <strong>ninguna de
+las cuatro series es ruido blanco</strong>. La prueba, sin embargo, no
+distingue entre tendencia, estacionalidad o ambos — solo confirma la
+presencia de estructura. Esa distinción es justamente la que hace esta
+tabla de decisión con base en la forma del correlograma.</p>
+</div>
 </div>
 <div id="a.4.-decaimiento-lento" class="section level2">
 <h2>A.4. Decaimiento lento</h2>
+</div>
 <div class="respuesta">
-<p><strong>ESCRIBIR AQUÍ — A.4</strong></p>
+<div id="a.4-dos-decaimientos-lentos-dos-causas" class="section level2">
+<h2>A.4 — Dos decaimientos lentos, dos causas</h2>
+<p>Tanto la <strong>Población de Australia</strong>
+(<code>austres</code>) como el <strong>Nivel del lago Hurón</strong>
+(<code>LakeHuron</code>) muestran un decaimiento lento del correlograma,
+pero <strong>las causas son distintas</strong>:</p>
 <ul>
-<li>Serie cuyo decaimiento lento procede de una tendencia:</li>
-<li>Serie cuyo decaimiento lento no procede de una tendencia:</li>
-<li>Justificación mediante un argumento distinto del correlograma:</li>
+<li><strong>Decaimiento lento por tendencia:</strong> Población de
+Australia.</li>
+<li><strong>Decaimiento lento sin tendencia:</strong> Nivel del lago
+Hurón.</li>
+</ul>
+<div id="justificación-sin-correlograma-argumento-de-incrementos" class="section level3">
+<h3>Justificación sin correlograma (argumento de incrementos)</h3>
+<p>Una tendencia es una <strong>dirección sostenida</strong>: si existe,
+casi todos los incrementos</p>
+<p><span class="math display">\[
+\Delta y_t = y_t - y_{t-1}
+\]</span></p>
+<p>comparten signo. Este argumento permite distinguir los dos casos
+<strong>sin mirar el correlograma</strong>, solo a partir del
+comportamiento de las primeras diferencias.</p>
+<ul>
+<li><p>En <code>austres</code>, el <strong>100 % de los incrementos
+trimestrales es positivo</strong> y la racha monótona más larga cubre
+las <strong>88 observaciones completas</strong>: la serie <strong>nunca
+retrocede</strong>. El nivel crece sin pausa, lo que es la firma
+inequívoca de una tendencia determinista o estocástica
+sostenida.</p></li>
+<li><p>En <code>LakeHuron</code>, los incrementos se reparten casi mitad
+y mitad (<strong>48,5 % positivos</strong>) y la racha monótona más
+larga es de <strong>apenas 7 años</strong>. El nivel sube y baja y
+<strong>vuelve sobre sí mismo</strong>: no hay una dirección dominante,
+solo fluctuaciones de nivel.</p></li>
 </ul>
 </div>
+<div id="interpretación" class="section level3">
+<h3>Interpretación</h3>
+<p>El correlograma de Hurón decae lentamente <strong>no porque haya una
+dirección</strong>, sino porque <strong>el nivel es
+persistente</strong>: lo que está alto este año tiende a seguir alto el
+próximo, simplemente porque el agua no se evapora de un año a otro. El
+de Australia decae lentamente <strong>porque el nivel crece sin
+parar</strong>.</p>
+</div>
+<div id="consecuencia-práctica" class="section level3">
+<h3>Consecuencia práctica</h3>
+<p>La consecuencia práctica es distinta para cada serie:</p>
+<ul>
+<li>En <strong>Australia</strong>, extrapolar una <strong>recta</strong>
+(o ajustar un modelo con tendencia) es razonable: los incrementos
+consistentemente positivos respaldan la idea de que la dirección
+continuará.</li>
+<li>En el <strong>lago Hurón</strong>, <strong>no</strong>: ahí se
+pronostica con <strong>métodos de nivel</strong> (medias móviles,
+suavizamiento exponencial simple, ARMA sobre la serie sin diferenciar),
+no con métodos de tendencia. Extrapolar una recta sobre una serie que
+oscila alrededor de una media estable produce pronósticos sesgados a
+largo plazo.</li>
+</ul>
 </div>
 </div>
 <div id="estación-b.-protocolo-completo-para-ambas-rutas" class="section level1">
@@ -2589,6 +2679,8 @@ sessionInfo()</code></pre>
 ## [13] compiler_4.5.2    rstudioapi_0.18.0 tools_4.5.2       evaluate_1.0.5   
 ## [17] bslib_0.10.0      yaml_2.3.12       otel_0.2.0        jsonlite_2.0.0   
 ## [21] rlang_1.2.0</code></pre>
+</div>
+</div>
 </div>
 
 

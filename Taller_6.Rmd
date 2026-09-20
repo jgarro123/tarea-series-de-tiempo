@@ -223,6 +223,23 @@ mostrar_tabla(tabla_A)
 Para la serie anual, s = 1 representa su frecuencia; no implica afirmar estacionalidad anual.
 
 ## A.2. Ljung–Box con 24 rezagos
+**Hipótesis.**  
+$H_0: \rho_1 = \rho_2 = \cdots = \rho_{24} = 0$ (la serie es ruido blanco hasta el rezago 24) contra $H_1:$ algún $\rho_k \neq 0$. El estadístico es
+
+$$
+Q = T(T+2) \sum_{k=1}^{m} \frac{r_k^2}{T-k},
+$$
+
+que bajo $H_0$ se distribuye aproximadamente $\chi^2_m$ (aquí $m=24$, sin descontar parámetros porque se prueba la serie cruda, no residuos).
+
+**Significancia y regla.**  
+Con $\alpha = 0{,}05$, el valor crítico es $\chi^2_{24;\,0{,}95} = 36{,}42$. Se rechaza $H_0$ si $Q > 36{,}42$ (equivalentemente, si valor_p $< 0.05$).
+
+**¿Por qué rechaza en las cuatro?**  
+Los cuatro $Q$ (203, 2342, 953 y 237) superan por completo ese umbral y los cuatro valor_p son prácticamente cero. Ninguna de las cuatro series es ruido blanco: todas tienen memoria, ya sea persistencia de nivel (Hurón), estacionalidad (Nottingham, muertes) o tendencia (Australia). Con series tan autocorrelacionadas y $T$ moderado a grande, casi cualquier serie real rechazaría esta prueba.
+
+**¿Por qué no distingue los patrones?**  
+$Q$ es una suma de cuadrados de los $r_k$: acumula magnitud sin registrar en qué rezagos se concentra la autocorrelación. Un $r_1$ grande (tendencia) y un $r_{12}$ grande (estacionalidad) contribuyen igual a $Q$. La prueba contesta "¿queda estructura?", no "¿qué tipo de estructura queda?" — esa segunda pregunta la responde la forma del correlograma (Ejercicios A.1, A.3), no el valor agregado de Ljung–Box.
 
 ```{r a2}
 tabla_A_ljung <- data.frame()
@@ -246,25 +263,76 @@ mostrar_tabla(tabla_A_ljung)
 </div>
 
 ## A.3. Tabla de decisión
+---
+title: "A.3. Tabla de decisión — Diagnóstico de series"
+format: html
+---
+
+## A.3. Tabla de decisión
+
+Con base en los correlogramas, los gráficos de las series y las autocorrelaciones muestrales ($r_1$, $r_s$, $r_{2s}$) reportadas en la tabla `tabla_A` del taller, se completa la siguiente tabla de decisión:
 
 | Serie | Patrón | Evidencia del correlograma | Familia de técnicas |
 |:--|:--|:--|:--|
-| Nivel del lago Hurón | [Completar] | [Completar] | [Completar] |
-| Temperatura en Nottingham | [Completar] | [Completar] | [Completar] |
-| Población de Australia | [Completar] | [Completar] | [Completar] |
-| Muertes accidentales | [Completar] | [Completar] | [Completar] |
+| Nivel del lago Hurón | **Tendencia (Tipo III)** | Decaimiento lento y monótono sin picos estacionales ($s=1$). $r_1 = 0.83$ muy alto. | Suavizamiento exponencial (Holt), ARIMA no estacional, regresión con tendencia. |
+| Temperatura en Nottingham | **Estacionalidad pura (Tipo II)** | Picos claros en múltiplos de $12$ ($s=12$) que no decaen. $r_{s} = 0.88$ muy alto. | Modelos estacionales (SARIMA, Holt-Winters estacional), descomposición. |
+| Población de Australia | **Tendencia (Tipo III)** | Decaimiento lento y persistente. $r_1 = 0.97$ extremadamente alto, indicando fuerte inercia. | Suavizamiento exponencial (Holt), ARIMA con diferenciación, regresión con tendencia. |
+| Muertes accidentales | **Tendencia + Estacionalidad (Tipo IV)** | Decaimiento lento combinado con picos estacionales en múltiplos de $12$. $r_1 = 0.71$ y $r_{s} = 0.63$. | SARIMA, Holt-Winters (tendencia + estacionalidad), descomposición STL. |
+
+### Notas de interpretación
+
+- **Nivel del lago Hurón (Tipo III).** Aunque la serie es anual ($s=1$), el correlograma muestra un decaimiento lento típico de una serie con persistencia de nivel o memoria larga. La banda de Bartlett se ensancha, pero los primeros $r_k$ permanecen fuera de ella. Esto descarta el escenario de ruido blanco (Tipo I) y descarta también estacionalidad (no hay picos periódicos).
+
+- **Temperatura en Nottingham (Tipo II).** Es el ejemplo canónico de estacionalidad pura. No hay tendencia a largo plazo, pero la dependencia con la época del año es muy fuerte: $r_{12} = 0.88$ prácticamente igual a $r_1 = 0.81$. Los picos estacionales no decaen, lo que confirma que el ciclo anual domina la dinámica.
+
+- **Población de Australia (Tipo III).** Su $r_1 = 0.97$ es el más alto de las cuatro series, señal de una tendencia muy suave y sostenida (fuerte inercia). Aunque la frecuencia es trimestral ($s=4$), no se observan picos estacionales marcados en los rezagos $4, 8, 12, \dots$ que superen la banda.
+
+- **Muertes accidentales (Tipo IV).** Combina tendencia y estacionalidad. El decaimiento inicial lento ($r_1 = 0.71$) indica memoria/tendencia, y el pico en $r_{12} = 0.63$ confirma el ciclo anual (mayor número de muertes en verano en EE. UU.). Es el caso más rico de los cuatro y por eso requiere modelos tipo SARIMA u Holt-Winters estacional.
+
+### Conexión con la prueba Ljung-Box (A.2)
+
+Los cuatro valores de $Q$ de la prueba Ljung-Box con $m=24$ rezagos (203, 2342, 953 y 237) superan ampliamente el valor crítico $\chi^2_{24;\,0.95} = 36.42$. Esto es coherente con lo que se observa en los correlogramas: **ninguna de las cuatro series es ruido blanco**. La prueba, sin embargo, no distingue entre tendencia, estacionalidad o ambos — solo confirma la presencia de estructura. Esa distinción es justamente la que hace esta tabla de decisión con base en la forma del correlograma.
 
 ## A.4. Decaimiento lento
 
 <div class="respuesta">
 
-**ESCRIBIR AQUÍ — A.4**
+---
+title: "A.4 — Dos decaimientos lentos, dos causas"
+format: html
+---
 
-- Serie cuyo decaimiento lento procede de una tendencia:
-- Serie cuyo decaimiento lento no procede de una tendencia:
-- Justificación mediante un argumento distinto del correlograma:
+## A.4 — Dos decaimientos lentos, dos causas
 
-</div>
+Tanto la **Población de Australia** (`austres`) como el **Nivel del lago Hurón** (`LakeHuron`) muestran un decaimiento lento del correlograma, pero **las causas son distintas**:
+
+- **Decaimiento lento por tendencia:** Población de Australia.
+- **Decaimiento lento sin tendencia:** Nivel del lago Hurón.
+
+### Justificación sin correlograma (argumento de incrementos)
+
+Una tendencia es una **dirección sostenida**: si existe, casi todos los incrementos
+
+$$
+\Delta y_t = y_t - y_{t-1}
+$$
+
+comparten signo. Este argumento permite distinguir los dos casos **sin mirar el correlograma**, solo a partir del comportamiento de las primeras diferencias.
+
+- En `austres`, el **100 % de los incrementos trimestrales es positivo** y la racha monótona más larga cubre las **88 observaciones completas**: la serie **nunca retrocede**. El nivel crece sin pausa, lo que es la firma inequívoca de una tendencia determinista o estocástica sostenida.
+
+- En `LakeHuron`, los incrementos se reparten casi mitad y mitad (**48,5 % positivos**) y la racha monótona más larga es de **apenas 7 años**. El nivel sube y baja y **vuelve sobre sí mismo**: no hay una dirección dominante, solo fluctuaciones de nivel.
+
+### Interpretación
+
+El correlograma de Hurón decae lentamente **no porque haya una dirección**, sino porque **el nivel es persistente**: lo que está alto este año tiende a seguir alto el próximo, simplemente porque el agua no se evapora de un año a otro. El de Australia decae lentamente **porque el nivel crece sin parar**.
+
+### Consecuencia práctica
+
+La consecuencia práctica es distinta para cada serie:
+
+- En **Australia**, extrapolar una **recta** (o ajustar un modelo con tendencia) es razonable: los incrementos consistentemente positivos respaldan la idea de que la dirección continuará.
+- En el **lago Hurón**, **no**: ahí se pronostica con **métodos de nivel** (medias móviles, suavizamiento exponencial simple, ARMA sobre la serie sin diferenciar), no con métodos de tendencia. Extrapolar una recta sobre una serie que oscila alrededor de una media estable produce pronósticos sesgados a largo plazo.
 
 # 3. Estación B. Protocolo completo para ambas rutas
 
