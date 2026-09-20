@@ -1352,12 +1352,65 @@ son los promedios de cada estación.
 ::: respuesta
 **ESCRIBIR AQUÍ — D.4**
 
--   Demostración de beta_j estimado = media de la estación j:
--   Escritura explícita de X transpuesta X y X transpuesta Y para cuatro
-    estaciones y cuatro ciclos:
--   Paso donde se usa que cada fila de X contiene exactamente un uno:
--   Verificación numérica e interpretación (pendientes para otra
-    sesión):
+Sea $X$ la matriz $n \times r$ de ficticias (con $n$ ciclos completos), $x_{tj} = 1$ si la observación $t$ pertenece a la estación $j$ y $0$ en otro caso. La entrada $(j, l)$ de $X^\top X$ es
+
+$$
+(X^\top X)_{jl} = \sum_{t=1}^{nr} x_{tj} \, x_{tl}.
+$$
+
+Aquí se usa que **cada fila de $X$ tiene exactamente un uno**: si $j \ne l$ no existe ningún $t$ con $x_{tj} = x_{tl} = 1$ (una observación no puede pertenecer a dos estaciones a la vez), así que $(X^\top X)_{jl} = 0$. Si $j = l$, $x_{tj}^2 = x_{tj}$ y la suma cuenta cuántas observaciones caen en la estación $j$: con $n$ ciclos completos, exactamente $n$. Por lo tanto
+
+$$
+X^\top X = n \, I_r
+\qquad \Longrightarrow \qquad
+(X^\top X)^{-1} = \frac{1}{n} \, I_r
+$$
+
+— la **ortogonalidad de las columnas**, consecuencia directa de esa propiedad de las filas, es lo que permite invertir sin esfuerzo.
+
+Por otro lado, la componente $j$ de $X^\top Y$ es
+
+$$
+(X^\top Y)_j = \sum_{t} x_{tj} \, Y_t = \sum_{t \in \text{estación } j} Y_t.
+$$
+
+Combinando ambos resultados,
+
+$$
+\hat{\beta} = (X^\top X)^{-1} X^\top Y
+= \frac{1}{n} \left( \sum_{t \in 1} Y_t, \, \dots, \, \sum_{t \in r} Y_t \right)^\top
+\quad \Longrightarrow \quad
+\hat{\beta}_j = \frac{1}{n} \sum_{t \in \text{estación } j} Y_t = \bar{S}_j. \quad \blacksquare
+$$
+
+## Caso explícito, $r = 4$ estaciones y $n = 4$ ciclos
+
+$$
+X^\top X =
+\begin{pmatrix}
+4 & 0 & 0 & 0 \\
+0 & 4 & 0 & 0 \\
+0 & 0 & 4 & 0 \\
+0 & 0 & 0 & 4
+\end{pmatrix}
+= 4 \, I_4,
+$$
+
+$$
+X^\top Y =
+\begin{pmatrix}
+Y_1 + Y_5 + Y_9 + Y_{13} \\
+Y_2 + Y_6 + Y_{10} + Y_{14} \\
+Y_3 + Y_7 + Y_{11} + Y_{15} \\
+Y_4 + Y_8 + Y_{12} + Y_{16}
+\end{pmatrix}.
+$$
+
+## Dos consecuencias que el taller viene usando sin volver a probarlas
+
+1. Los coeficientes de un modelo `lm(y ~ q - 1)` **no cambian** si se elimina o añade una estación distinta: las columnas son ortogonales, sin colinealidad entre ellas.
+
+2. El modelo de "medias estacionales" del paso 4 de la Estación B es, literalmente, "**calcule el promedio de cada mes o trimestre por separado**" — con todas las limitaciones que eso conlleva, como se vio en la comparación adicional de la ruta 1.
 :::
 
 # 6. Cierre: autoevaluación
@@ -1405,6 +1458,8 @@ Una medida de incertidumbre (banda o intervalo) con su naturaleza declarada —h
 -   [R stats: comparación de modelos
     lineales](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/anova.lm.html).
 
+
+FIN
 ```{r sesion, results='markup'}
 # Se registra la versión de R y de los paquetes para reproducir la ejecución.
 sessionInfo()
